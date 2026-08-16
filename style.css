@@ -436,3 +436,200 @@ body {
   font-size: 15px;
   margin: 0 0 6px;
 }
+/* ===== हेडर में दो लिंक ===== */
+.header-links {
+  display: flex;
+  gap: 6px;
+}
+
+.seller-link {
+  color: #F0B84D;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(240,184,77,0.6);
+  padding: 5px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ===== विक्रेता डैशबोर्ड ===== */
+.seller-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+.seller-page h1 {
+  color: #1B2A4A;
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.seller-note {
+  font-size: 12px;
+  color: rgba(26,26,26,0.5);
+  margin-top: 0;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
+  text-align: center;
+}
+
+.stat-card.warn {
+  background: #FFF6E5;
+}
+
+.stat-card.danger {
+  background: #FDECEC;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1B2A4A;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: rgba(26,26,26,0.55);
+  margin-top: 2px;
+}
+
+.section-box {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
+}
+
+.section-box h3 {
+  color: #1B2A4A;
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.empty-note {
+  font-size: 13px;
+  color: rgba(26,26,26,0.45);
+  text-align: center;
+  padding: 10px 0;
+}
+
+/* श्रेणी बार चार्ट */
+.cat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.cat-bar-label {
+  width: 100px;
+  flex-shrink: 0;
+  color: #333;
+}
+
+.cat-bar-track {
+  flex: 1;
+  background: #EDE4D3;
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.cat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F0B84D, #DE9A2C);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.cat-bar-count {
+  width: 20px;
+  text-align: right;
+  color: #1B2A4A;
+  font-weight: 700;
+}
+
+/* मेरा सामान लिस्ट */
+.product-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(27,42,74,0.08);
+}
+
+.product-row:last-child {
+  border-bottom: none;
+}
+
+.product-row img {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #EDE4D3;
+  flex-shrink: 0;
+}
+
+.product-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-row-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.product-row-price {
+  font-size: 12px;
+  color: #A8331F;
+  font-weight: 700;
+}
+
+.warn-text {
+  font-size: 11px;
+  color: #B8860B;
+  font-weight: 600;
+}
+
+.danger-text {
+  font-size: 11px;
+  color: #C0392B;
+  font-weight: 600;
+}
+
+.product-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-btn {
+  border: none;
+  background: #F5EFDF;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.mini-btn.delete {
+  background: #FDECEC;
+}
