@@ -81,6 +81,45 @@ body {
 .stripe span {
   flex: 1;
 }
+/* ===== छोटी स्क्रीन (बहुत पुराने/छोटे फोन) — सब कुछ ठीक से फिट हो ===== */
+@media (max-width: 340px) {
+  .grid {
+    gap: 8px;
+    padding: 8px;
+  }
+  .card-title {
+    font-size: 12px;
+  }
+  .header-top {
+    font-size: 15px;
+  }
+  .about-link {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+/* ===== बड़ी स्क्रीन (टैबलेट) — बीच में सिमटा हुआ, ज़्यादा कॉलम ===== */
+@media (min-width: 600px) {
+  .header-top, .location, .search-box, .categories, .grid, .about-page {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== बहुत बड़ी स्क्रीन (लैपटॉप/डेस्कटॉप) ===== */
+@media (min-width: 1000px) {
+  .header-top, .location, .search-box, .categories, .grid, .about-page {
+    max-width: 900px;
+  }
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 
 /* ===== श्रेणियाँ (categories) ===== */
 .categories {
