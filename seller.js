@@ -1,13 +1,19 @@
-// ===== डेटा localStorage से पढ़ना (या खाली लिस्ट से शुरू करना) =====
+// ===== डेटा पढ़ना/सेव करना =====
 function getProducts() {
   const data = localStorage.getItem("mySellerProducts");
   return data ? JSON.parse(data) : [];
 }
-
 function saveProducts(list) {
   localStorage.setItem("mySellerProducts", JSON.stringify(list));
 }
+function isPremium() {
+  return localStorage.getItem("isPremiumSeller") === "true";
+}
+function setPremium(value) {
+  localStorage.setItem("isPremiumSeller", value ? "true" : "false");
+}
 
+const FREE_LIMIT = 5;
 const catLabels = {
   sabzi: "🥕 सब्ज़ी-राशन",
   kapde: "👕 कपड़े",
@@ -18,7 +24,53 @@ const catLabels = {
 
 let editingId = null;
 
-// ===== आंकड़े (stats) दिखाना =====
+// ===== प्रीमियम कार्ड =====
+function renderPremiumCard() {
+  const premium = isPremium();
+  const card = document.getElementById("premiumCard");
+
+  if (premium) {
+    card.innerHTML = `
+      <div class="premium-card premium-active">
+        <div class="premium-badge">⭐ प्रीमियम विक्रेता</div>
+        <p>आपको मिल रहा है: अनलिमिटेड लिस्टिंग, फीचर्ड प्रोडक्ट, वेरिफाइड बैज, एडवांस्ड एनालिसिस</p>
+        <button class="btn-secondary" id="downgradeBtn">प्रीमियम रद्द करें (डेमो)</button>
+      </div>
+    `;
+    document.getElementById("downgradeBtn").addEventListener("click", () => {
+      setPremium(false);
+      renderAll();
+    });
+  } else {
+    card.innerHTML = `
+      <div class="premium-card">
+        <div class="premium-title">🔓 प्रीमियम विक्रेता बनें</div>
+        <ul class="premium-list">
+          <li>✅ अनलिमिटेड लिस्टिंग (अभी सिर्फ़ ${FREE_LIMIT} तक)</li>
+          <li>✅ सामान को सर्च में ऊपर दिखाएँ (फीचर्ड)</li>
+          <li>✅ प्रोफाइल पर ✔️ वेरिफाइड बैज</li>
+          <li>✅ एडवांस्ड बिक्री एनालिसिस</li>
+        </ul>
+        <button class="btn-primary" id="upgradeBtn">प्रीमियम में अपग्रेड करें (डेमो)</button>
+        <p class="premium-hint">यह अभी सिर्फ़ डेमो बटन है, असली पेमेंट बाद में जोड़ेंगे</p>
+      </div>
+    `;
+    document.getElementById("upgradeBtn").addEventListener("click", () => {
+      setPremium(true);
+      renderAll();
+    });
+  }
+}
+
+// ===== पेज टाइटल में वेरिफाइड बैज =====
+function renderTitle() {
+  const title = document.getElementById("pageTitle");
+  title.innerHTML = isPremium()
+    ? `विक्रेता डैशबोर्ड <span class="verified-badge">✔️ वेरिफाइड</span>`
+    : `विक्रेता डैशबोर्ड`;
+}
+
+// ===== आंकड़े =====
 function renderStats() {
   const products = getProducts();
   const totalItems = products.length;
@@ -26,10 +78,9 @@ function renderStats() {
   const lowStock = products.filter((p) => p.stock > 0 && p.stock < 5).length;
   const outOfStock = products.filter((p) => p.stock === 0).length;
 
-  const grid = document.getElementById("statGrid");
-  grid.innerHTML = `
+  document.getElementById("statGrid").innerHTML = `
     <div class="stat-card">
-      <div class="stat-value">${totalItems}</div>
+      <div class="stat-value">${totalItems}${isPremium() ? "" : " / " + FREE_LIMIT}</div>
       <div class="stat-label">कुल लिस्टिंग</div>
     </div>
     <div class="stat-card">
@@ -47,82 +98,127 @@ function renderStats() {
   `;
 }
 
-// ===== श्रेणी के हिसाब से बार-चार्ट =====
+// ===== एडवांस्ड एनालिसिस (सिर्फ़ प्रीमियम) =====
+function renderAdvanced() {
+  const box = document.getElementById("advancedSection");
+  const products = getProducts();
+
+  if (!isPremium()) {
+    box.innerHTML = `
+      <h3>📊 एडवांस्ड एनालिसिस</h3>
+      <div class="locked-box">
+        <p>🔒 यह सुविधा सिर्फ़ प्रीमियम विक्रेताओं के लिए है।</p>
+        <p class="premium-hint">ऊपर "प्रीमियम में अपग्रेड करें" दबाकर अनलॉक करें</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (products.length === 0) {
+    box.innerHTML = `<h3>📊 एडवांस्ड एनालिसिस</h3><p class="empty-note">पहले कुछ सामान जोड़ें, तब आंकड़े दिखेंगे।</p>`;
+    return;
+  }
+
+  const avgPrice = Math.round(products.reduce((s, p) => s + p.price, 0) / products.length);
+  const highest = products.reduce((a, b) => (a.price > b.price ? a : b));
+  const cheapest = products.reduce((a, b) => (a.price < b.price ? a : b));
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const addedThisWeek = products.filter((p) => p.id > weekAgo).length;
+  const featuredCount = products.filter((p) => p.featured).length;
+
+  box.innerHTML = `
+    <h3>📊 एडवांस्ड एनालिसिस</h3>
+    <div class="analysis-row"><span>औसत कीमत</span><b>₹${avgPrice}</b></div>
+    <div class="analysis-row"><span>सबसे महँगा सामान</span><b>${highest.name} (₹${highest.price})</b></div>
+    <div class="analysis-row"><span>सबसे सस्ता सामान</span><b>${cheapest.name} (₹${cheapest.price})</b></div>
+    <div class="analysis-row"><span>इस हफ़्ते जोड़ा गया</span><b>${addedThisWeek} सामान</b></div>
+    <div class="analysis-row"><span>फीचर्ड सामान</span><b>${featuredCount}</b></div>
+    <p class="premium-hint">बिक्री का रुझान (sales trend) असली ऑर्डर आने पर दिखेगा — अभी डेमो में ऑर्डर नहीं हैं</p>
+  `;
+}
+
+// ===== श्रेणी बार चार्ट =====
 function renderCatBars() {
   const products = getProducts();
   const wrap = document.getElementById("catBars");
-
   if (products.length === 0) {
     wrap.innerHTML = `<p class="empty-note">अभी कोई सामान नहीं जोड़ा गया।</p>`;
     return;
   }
-
   const counts = {};
-  products.forEach((p) => {
-    counts[p.cat] = (counts[p.cat] || 0) + 1;
-  });
+  products.forEach((p) => { counts[p.cat] = (counts[p.cat] || 0) + 1; });
   const max = Math.max(...Object.values(counts));
-
-  wrap.innerHTML = Object.keys(counts)
-    .map((cat) => {
-      const pct = Math.round((counts[cat] / max) * 100);
-      return `
-        <div class="cat-bar-row">
-          <span class="cat-bar-label">${catLabels[cat] || cat}</span>
-          <div class="cat-bar-track">
-            <div class="cat-bar-fill" style="width:${pct}%"></div>
-          </div>
-          <span class="cat-bar-count">${counts[cat]}</span>
-        </div>
-      `;
-    })
-    .join("");
+  wrap.innerHTML = Object.keys(counts).map((cat) => {
+    const pct = Math.round((counts[cat] / max) * 100);
+    return `
+      <div class="cat-bar-row">
+        <span class="cat-bar-label">${catLabels[cat] || cat}</span>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%"></div></div>
+        <span class="cat-bar-count">${counts[cat]}</span>
+      </div>
+    `;
+  }).join("");
 }
 
-// ===== मेरे सामान की लिस्ट दिखाना =====
+// ===== मेरे सामान की लिस्ट =====
 function renderMyProducts() {
-  const products = getProducts();
-  const wrap = document.getElementById("myProducts");
+  let products = getProducts();
   document.getElementById("countLabel").textContent = products.length;
 
+  // फीचर्ड सामान सबसे ऊपर
+  products = [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
+  const wrap = document.getElementById("myProducts");
   if (products.length === 0) {
     wrap.innerHTML = `<p class="empty-note">आपने अभी तक कोई सामान लिस्ट नहीं किया। नीचे फॉर्म से जोड़ें 👆</p>`;
     return;
   }
 
-  wrap.innerHTML = products
-    .map((p) => {
-      let stockClass = "";
-      let stockText = `${p.stock} ${p.unit} उपलब्ध`;
-      if (p.stock === 0) {
-        stockClass = "danger-text";
-        stockText = "स्टॉक खत्म ❌";
-      } else if (p.stock < 5) {
-        stockClass = "warn-text";
-        stockText = `सिर्फ़ ${p.stock} ${p.unit} बचा — जल्दी बढ़ाएँ`;
-      }
+  wrap.innerHTML = products.map((p) => {
+    let stockClass = "", stockText = `${p.stock} ${p.unit} उपलब्ध`;
+    if (p.stock === 0) { stockClass = "danger-text"; stockText = "स्टॉक खत्म ❌"; }
+    else if (p.stock < 5) { stockClass = "warn-text"; stockText = `सिर्फ़ ${p.stock} ${p.unit} बचा`; }
 
-      return `
-        <div class="product-row">
-          <img src="${p.img || "https://placehold.co/80x80/EDE4D3/1B2A4A?text=📦"}" alt="${p.name}">
-          <div class="product-row-info">
-            <div class="product-row-title">${p.name}</div>
-            <div class="product-row-price">₹${p.price} / ${p.unit}</div>
-            <div class="${stockClass}">${stockText}</div>
-          </div>
-          <div class="product-row-actions">
-            <button onclick="startEdit(${p.id})" class="mini-btn edit">✏️</button>
-            <button onclick="deleteProduct(${p.id})" class="mini-btn delete">🗑️</button>
-          </div>
+    return `
+      <div class="product-row ${p.featured ? "featured-row" : ""}">
+        <img src="${p.img || "https://placehold.co/80x80/EDE4D3/1B2A4A?text=📦"}" alt="${p.name}">
+        <div class="product-row-info">
+          <div class="product-row-title">${p.name} ${p.featured ? '<span class="featured-tag">⭐ फीचर्ड</span>' : ""}</div>
+          <div class="product-row-price">₹${p.price} / ${p.unit}</div>
+          <div class="${stockClass}">${stockText}</div>
         </div>
-      `;
-    })
-    .join("");
+        <div class="product-row-actions">
+          <button onclick="toggleFeatured(${p.id})" class="mini-btn ${p.featured ? "star-active" : ""}">⭐</button>
+          <button onclick="startEdit(${p.id})" class="mini-btn edit">✏️</button>
+          <button onclick="deleteProduct(${p.id})" class="mini-btn delete">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
-// ===== नया सामान जोड़ना / एडिट सेव करना =====
+// ===== फीचर्ड टॉगल =====
+function toggleFeatured(id) {
+  if (!isPremium()) {
+    alert("यह सुविधा सिर्फ़ प्रीमियम विक्रेताओं के लिए है। ऊपर से प्रीमियम अपग्रेड करें।");
+    return;
+  }
+  let products = getProducts();
+  products = products.map((p) => p.id === id ? { ...p, featured: !p.featured } : p);
+  saveProducts(products);
+  renderAll();
+}
+
+// ===== फॉर्म सबमिट (लिमिट चेक के साथ) =====
 function handleSubmit(e) {
   e.preventDefault();
+  let products = getProducts();
+
+  if (!editingId && !isPremium() && products.length >= FREE_LIMIT) {
+    alert(`फ्री प्लान में सिर्फ़ ${FREE_LIMIT} सामान तक लिस्ट कर सकते हैं। अनलिमिटेड लिस्टिंग के लिए प्रीमियम अपग्रेड करें।`);
+    return;
+  }
+
   const name = document.getElementById("pName").value;
   const price = Number(document.getElementById("pPrice").value);
   const unit = document.getElementById("pUnit").value;
@@ -130,16 +226,10 @@ function handleSubmit(e) {
   const cat = document.getElementById("pCat").value;
   const img = document.getElementById("pImg").value;
 
-  let products = getProducts();
-
   if (editingId) {
-    // पुराना सामान अपडेट करना
-    products = products.map((p) =>
-      p.id === editingId ? { ...p, name, price, unit, stock, cat, img } : p
-    );
+    products = products.map((p) => p.id === editingId ? { ...p, name, price, unit, stock, cat, img } : p);
   } else {
-    // नया सामान जोड़ना
-    products.unshift({ id: Date.now(), name, price, unit, stock, cat, img });
+    products.unshift({ id: Date.now(), name, price, unit, stock, cat, img, featured: false });
   }
 
   saveProducts(products);
@@ -147,12 +237,9 @@ function handleSubmit(e) {
   renderAll();
 }
 
-// ===== एडिट शुरू करना =====
 function startEdit(id) {
-  const products = getProducts();
-  const p = products.find((x) => x.id === id);
+  const p = getProducts().find((x) => x.id === id);
   if (!p) return;
-
   editingId = id;
   document.getElementById("pName").value = p.name;
   document.getElementById("pPrice").value = p.price;
@@ -160,14 +247,12 @@ function startEdit(id) {
   document.getElementById("pStock").value = p.stock;
   document.getElementById("pCat").value = p.cat;
   document.getElementById("pImg").value = p.img || "";
-
   document.getElementById("formTitle").textContent = "सामान एडिट करें";
   document.getElementById("submitBtn").textContent = "बदलाव सेव करें";
   document.getElementById("cancelEdit").style.display = "block";
   window.scrollTo({ top: document.getElementById("sellerForm").offsetTop - 20, behavior: "smooth" });
 }
 
-// ===== एडिट रद्द करना =====
 function resetForm() {
   editingId = null;
   document.getElementById("sellerForm").reset();
@@ -176,20 +261,32 @@ function resetForm() {
   document.getElementById("cancelEdit").style.display = "none";
 }
 
-// ===== सामान हटाना =====
 function deleteProduct(id) {
   if (!confirm("क्या आप वाकई इस सामान को हटाना चाहते हैं?")) return;
-  let products = getProducts();
-  products = products.filter((p) => p.id !== id);
-  saveProducts(products);
+  saveProducts(getProducts().filter((p) => p.id !== id));
   renderAll();
 }
 
-// ===== सब कुछ एक साथ रिफ्रेश करना =====
+function renderLimitNote() {
+  const note = document.getElementById("limitNote");
+  const count = getProducts().length;
+  if (isPremium()) {
+    note.textContent = "✅ प्रीमियम: अनलिमिटेड लिस्टिंग";
+    note.className = "limit-note ok";
+  } else {
+    note.textContent = `फ्री प्लान: ${count} / ${FREE_LIMIT} इस्तेमाल हुआ`;
+    note.className = "limit-note";
+  }
+}
+
 function renderAll() {
+  renderPremiumCard();
+  renderTitle();
   renderStats();
+  renderAdvanced();
   renderCatBars();
   renderMyProducts();
+  renderLimitNote();
 }
 
 document.getElementById("sellerForm").addEventListener("submit", handleSubmit);
