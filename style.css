@@ -29,19 +29,24 @@ body {
   letter-spacing: 0.2px;
 }
 
-.about-link {
+.header-links {
+  display: flex;
+  gap: 6px;
+}
+
+.about-link, .seller-link {
   color: #F0B84D;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   border: 1px solid rgba(240,184,77,0.6);
-  padding: 5px 12px;
+  padding: 5px 10px;
   border-radius: 20px;
   white-space: nowrap;
   transition: background 0.2s ease, transform 0.15s ease;
 }
 
-.about-link:active {
+.about-link:active, .seller-link:active {
   background: rgba(240,184,77,0.15);
   transform: scale(0.96);
 }
@@ -80,45 +85,6 @@ body {
 
 .stripe span {
   flex: 1;
-}
-/* ===== छोटी स्क्रीन (बहुत पुराने/छोटे फोन) — सब कुछ ठीक से फिट हो ===== */
-@media (max-width: 340px) {
-  .grid {
-    gap: 8px;
-    padding: 8px;
-  }
-  .card-title {
-    font-size: 12px;
-  }
-  .header-top {
-    font-size: 15px;
-  }
-  .about-link {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-}
-
-/* ===== बड़ी स्क्रीन (टैबलेट) — बीच में सिमटा हुआ, ज़्यादा कॉलम ===== */
-@media (min-width: 600px) {
-  .header-top, .location, .search-box, .categories, .grid, .about-page {
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* ===== बहुत बड़ी स्क्रीन (लैपटॉप/डेस्कटॉप) ===== */
-@media (min-width: 1000px) {
-  .header-top, .location, .search-box, .categories, .grid, .about-page {
-    max-width: 900px;
-  }
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* ===== श्रेणियाँ (categories) ===== */
@@ -231,7 +197,6 @@ body {
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 6px;
-  backdrop-filter: blur(2px);
 }
 
 @keyframes fadeInUp {
@@ -436,22 +401,6 @@ body {
   font-size: 15px;
   margin: 0 0 6px;
 }
-/* ===== हेडर में दो लिंक ===== */
-.header-links {
-  display: flex;
-  gap: 6px;
-}
-
-.seller-link {
-  color: #F0B84D;
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid rgba(240,184,77,0.6);
-  padding: 5px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
 
 /* ===== विक्रेता डैशबोर्ड ===== */
 .seller-page {
@@ -528,7 +477,6 @@ body {
   padding: 10px 0;
 }
 
-/* श्रेणी बार चार्ट */
 .cat-bar-row {
   display: flex;
   align-items: center;
@@ -565,7 +513,6 @@ body {
   font-weight: 700;
 }
 
-/* मेरा सामान लिस्ट */
 .product-row {
   display: flex;
   align-items: center;
@@ -632,4 +579,44 @@ body {
 
 .mini-btn.delete {
   background: #FDECEC;
+}
+
+/* ===== छोटी स्क्रीन ===== */
+@media (max-width: 340px) {
+  .grid {
+    gap: 8px;
+    padding: 8px;
+  }
+  .card-title {
+    font-size: 12px;
+  }
+  .header-top {
+    font-size: 15px;
+  }
+  .about-link, .seller-link {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+/* ===== बड़ी स्क्रीन (टैबलेट) ===== */
+@media (min-width: 600px) {
+  .header-top, .location, .search-box, .categories, .grid, .about-page, .seller-page {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== बहुत बड़ी स्क्रीन (लैपटॉप/डेस्कटॉप) ===== */
+@media (min-width: 1000px) {
+  .header-top, .location, .search-box, .categories, .grid, .about-page, .seller-page {
+    max-width: 900px;
+  }
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
