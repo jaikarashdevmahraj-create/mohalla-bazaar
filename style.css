@@ -620,3 +620,115 @@ body {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+/* ===== प्रीमियम कार्ड ===== */
+.premium-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
+  border: 1px solid rgba(27,42,74,0.06);
+}
+
+.premium-card.premium-active {
+  background: linear-gradient(160deg, #12203D, #223a63);
+  color: white;
+}
+
+.premium-title {
+  font-weight: 800;
+  color: #1B2A4A;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.premium-badge {
+  display: inline-block;
+  background: #F0B84D;
+  color: #1B2A4A;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.premium-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.premium-hint {
+  font-size: 11px;
+  color: rgba(26,26,26,0.4);
+  margin-top: 8px;
+}
+
+.premium-active .premium-hint {
+  color: rgba(255,255,255,0.6);
+}
+
+.verified-badge {
+  display: inline-block;
+  background: #E7F5EC;
+  color: #2E7D4F;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.locked-box {
+  background: #F5EFDF;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.analysis-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(27,42,74,0.06);
+}
+
+.analysis-row:last-of-type {
+  border-bottom: none;
+}
+
+.limit-note {
+  font-size: 11px;
+  color: #B8860B;
+  margin: 0 0 10px;
+}
+
+.limit-note.ok {
+  color: #2E7D4F;
+}
+
+.featured-row {
+  background: #FFF9EC;
+  margin: 0 -8px;
+  padding: 10px 8px;
+  border-radius: 10px;
+}
+
+.featured-tag {
+  font-size: 10px;
+  background: #F0B84D;
+  color: #1B2A4A;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+}
+
+.mini-btn.star-active {
+  background: #F0B84D;
+}
