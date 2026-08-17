@@ -26,10 +26,8 @@
 
   <div class="seller-page">
 
-    <!-- ===== दुकान कैसी दिखेगी (ग्राहकों को) ===== -->
     <div class="storefront-card" id="storefrontPreview"></div>
 
-    <!-- ===== प्रोफाइल एडिट फॉर्म ===== -->
     <div class="section-box">
       <h3>दुकान की जानकारी संपादित करें</h3>
       <form id="profileForm">
@@ -61,8 +59,25 @@
         <label>मोबाइल नंबर</label>
         <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
 
-        <label>इलाका / पता</label>
-        <input type="text" id="area" required placeholder="जैसे: शास्त्री नगर, आगरा">
+        <h4 class="form-subheading">📍 पते की जानकारी</h4>
+
+        <label>राज्य</label>
+        <input type="text" id="state" required placeholder="जैसे: मध्य प्रदेश">
+
+        <label>ज़िला</label>
+        <input type="text" id="district" required placeholder="जैसे: इंदौर">
+
+        <label>तहसील</label>
+        <input type="text" id="tehsil" placeholder="जैसे: देपालपुर">
+
+        <label>गाँव / इलाका</label>
+        <input type="text" id="village" required placeholder="जैसे: शास्त्री नगर">
+
+        <label>पिन कोड (Area Code)</label>
+        <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
+
+        <label>पूरा घर/दुकान का पता</label>
+        <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
 
         <label>दुकान के बारे में (छोटा परिचय)</label>
         <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
