@@ -23,6 +23,41 @@ const catLabels = {
 };
 
 let editingId = null;
+let currentProductImg = null;
+
+// ===== फोटो को छोटा करके base64 में बदलना (ताकि जगह कम लगे) =====
+function resizeImage(file, maxSize, callback) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      let w = img.width, h = img.height;
+      if (w > h && w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
+      else if (h >= w && h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL("image/jpeg", 0.7));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showPreview(src) {
+  document.getElementById("pImgPreview").src = src;
+  document.getElementById("imgPreviewWrap").style.display = "block";
+}
+
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  resizeImage(file, 600, function (dataUrl) {
+    currentProductImg = dataUrl;
+    showPreview(dataUrl);
+  });
+}
 
 // ===== प्रीमियम कार्ड =====
 function renderPremiumCard() {
@@ -62,7 +97,6 @@ function renderPremiumCard() {
   }
 }
 
-// ===== पेज टाइटल में वेरिफाइड बैज =====
 function renderTitle() {
   const title = document.getElementById("pageTitle");
   title.innerHTML = isPremium()
@@ -70,7 +104,6 @@ function renderTitle() {
     : `विक्रेता डैशबोर्ड`;
 }
 
-// ===== आंकड़े =====
 function renderStats() {
   const products = getProducts();
   const totalItems = products.length;
@@ -98,7 +131,6 @@ function renderStats() {
   `;
 }
 
-// ===== एडवांस्ड एनालिसिस (सिर्फ़ प्रीमियम) =====
 function renderAdvanced() {
   const box = document.getElementById("advancedSection");
   const products = getProducts();
@@ -113,7 +145,6 @@ function renderAdvanced() {
     `;
     return;
   }
-
   if (products.length === 0) {
     box.innerHTML = `<h3>📊 एडवांस्ड एनालिसिस</h3><p class="empty-note">पहले कुछ सामान जोड़ें, तब आंकड़े दिखेंगे।</p>`;
     return;
@@ -133,11 +164,10 @@ function renderAdvanced() {
     <div class="analysis-row"><span>सबसे सस्ता सामान</span><b>${cheapest.name} (₹${cheapest.price})</b></div>
     <div class="analysis-row"><span>इस हफ़्ते जोड़ा गया</span><b>${addedThisWeek} सामान</b></div>
     <div class="analysis-row"><span>फीचर्ड सामान</span><b>${featuredCount}</b></div>
-    <p class="premium-hint">बिक्री का रुझान (sales trend) असली ऑर्डर आने पर दिखेगा — अभी डेमो में ऑर्डर नहीं हैं</p>
+    <p class="premium-hint">बिक्री का रुझान असली ऑर्डर आने पर दिखेगा — अभी डेमो में ऑर्डर नहीं हैं</p>
   `;
 }
 
-// ===== श्रेणी बार चार्ट =====
 function renderCatBars() {
   const products = getProducts();
   const wrap = document.getElementById("catBars");
@@ -160,12 +190,9 @@ function renderCatBars() {
   }).join("");
 }
 
-// ===== मेरे सामान की लिस्ट =====
 function renderMyProducts() {
   let products = getProducts();
   document.getElementById("countLabel").textContent = products.length;
-
-  // फीचर्ड सामान सबसे ऊपर
   products = [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
   const wrap = document.getElementById("myProducts");
@@ -197,7 +224,6 @@ function renderMyProducts() {
   }).join("");
 }
 
-// ===== फीचर्ड टॉगल =====
 function toggleFeatured(id) {
   if (!isPremium()) {
     alert("यह सुविधा सिर्फ़ प्रीमियम विक्रेताओं के लिए है। ऊपर से प्रीमियम अपग्रेड करें।");
@@ -209,7 +235,6 @@ function toggleFeatured(id) {
   renderAll();
 }
 
-// ===== फॉर्म सबमिट (लिमिट चेक के साथ) =====
 function handleSubmit(e) {
   e.preventDefault();
   let products = getProducts();
@@ -224,12 +249,13 @@ function handleSubmit(e) {
   const unit = document.getElementById("pUnit").value;
   const stock = Number(document.getElementById("pStock").value);
   const cat = document.getElementById("pCat").value;
-  const img = document.getElementById("pImg").value;
 
   if (editingId) {
-    products = products.map((p) => p.id === editingId ? { ...p, name, price, unit, stock, cat, img } : p);
+    products = products.map((p) => p.id === editingId
+      ? { ...p, name, price, unit, stock, cat, img: currentProductImg !== undefined ? currentProductImg : p.img }
+      : p);
   } else {
-    products.unshift({ id: Date.now(), name, price, unit, stock, cat, img, featured: false });
+    products.unshift({ id: Date.now(), name, price, unit, stock, cat, img: currentProductImg, featured: false });
   }
 
   saveProducts(products);
@@ -241,12 +267,14 @@ function startEdit(id) {
   const p = getProducts().find((x) => x.id === id);
   if (!p) return;
   editingId = id;
+  currentProductImg = p.img || null;
   document.getElementById("pName").value = p.name;
   document.getElementById("pPrice").value = p.price;
   document.getElementById("pUnit").value = p.unit;
   document.getElementById("pStock").value = p.stock;
   document.getElementById("pCat").value = p.cat;
-  document.getElementById("pImg").value = p.img || "";
+  if (p.img) showPreview(p.img);
+  else document.getElementById("imgPreviewWrap").style.display = "none";
   document.getElementById("formTitle").textContent = "सामान एडिट करें";
   document.getElementById("submitBtn").textContent = "बदलाव सेव करें";
   document.getElementById("cancelEdit").style.display = "block";
@@ -255,7 +283,10 @@ function startEdit(id) {
 
 function resetForm() {
   editingId = null;
+  currentProductImg = null;
   document.getElementById("sellerForm").reset();
+  document.getElementById("pImgFile").value = "";
+  document.getElementById("imgPreviewWrap").style.display = "none";
   document.getElementById("formTitle").textContent = "नया सामान जोड़ें";
   document.getElementById("submitBtn").textContent = "सामान जोड़ें";
   document.getElementById("cancelEdit").style.display = "none";
@@ -291,5 +322,11 @@ function renderAll() {
 
 document.getElementById("sellerForm").addEventListener("submit", handleSubmit);
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
+document.getElementById("pImgFile").addEventListener("change", handleImageSelect);
+document.getElementById("removeImgBtn").addEventListener("click", () => {
+  currentProductImg = null;
+  document.getElementById("pImgFile").value = "";
+  document.getElementById("imgPreviewWrap").style.display = "none";
+});
 
 renderAll();
