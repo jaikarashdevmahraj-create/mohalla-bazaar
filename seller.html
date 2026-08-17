@@ -12,6 +12,7 @@
     <div class="header-top">
       <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
       <div class="header-links">
+        <a href="seller-profile.html" class="seller-link">🏬 मेरी दुकान</a>
         <a href="index.html" class="about-link">🏠 होमपेज</a>
       </div>
     </div>
@@ -29,22 +30,17 @@
     <h1 id="pageTitle">विक्रेता डैशबोर्ड</h1>
     <p class="seller-note">यह डेटा अभी सिर्फ़ आपके इस फोन/ब्राउज़र में सेव है।</p>
 
-    <!-- ===== प्रीमियम स्टेटस कार्ड ===== -->
     <div id="premiumCard"></div>
 
-    <!-- ===== आंकड़े (Stats) ===== -->
     <div class="stat-grid" id="statGrid"></div>
 
-    <!-- ===== एडवांस्ड एनालिसिस ===== -->
     <div class="section-box" id="advancedSection"></div>
 
-    <!-- ===== श्रेणी के हिसाब से सामान ===== -->
     <div class="section-box">
       <h3>श्रेणी के हिसाब से सामान</h3>
       <div id="catBars"></div>
     </div>
 
-    <!-- ===== नया सामान जोड़ें / एडिट करें ===== -->
     <div class="section-box">
       <h3 id="formTitle">नया सामान जोड़ें</h3>
       <p class="limit-note" id="limitNote"></p>
@@ -78,15 +74,21 @@
           <option value="handmade">🧶 हस्तशिल्प</option>
         </select>
 
-        <label>फोटो का लिंक (चाहें तो खाली छोड़ दें)</label>
-        <input type="text" id="pImg" placeholder="https://...">
+        <label>सामान की फोटो</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="pImgFile" class="file-input">
+          <label for="pImgFile" class="upload-btn">🖼️ गैलरी से फोटो चुनें</label>
+        </div>
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none;">
+          <img id="pImgPreview" alt="preview">
+          <button type="button" id="removeImgBtn" class="remove-img-btn">✕ हटाएँ</button>
+        </div>
 
         <button type="submit" class="btn-primary" id="submitBtn">सामान जोड़ें</button>
         <button type="button" class="btn-secondary" id="cancelEdit" style="display:none;">एडिट रद्द करें</button>
       </form>
     </div>
 
-    <!-- ===== मेरे सामान की लिस्ट ===== -->
     <div class="section-box">
       <h3>मेरा सामान (<span id="countLabel">0</span>)</h3>
       <div id="myProducts"></div>
