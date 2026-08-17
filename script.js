@@ -1,5 +1,4 @@
-// ===== 1. सामान की लिस्ट (डेटा) =====
-// असली ऐप में यह डेटा सर्वर से आएगा, अभी के लिए यहीं लिखा है
+// ===== डेमो सामान (हमेशा दिखने वाला सैंपल डेटा) =====
 const categories = [
   { id: "sab", label: "सब कुछ", emoji: "🏪" },
   { id: "sabzi", label: "सब्ज़ी-राशन", emoji: "🥕" },
@@ -9,19 +8,56 @@ const categories = [
   { id: "handmade", label: "हस्तशिल्प", emoji: "🧶" },
 ];
 
-let listings = [
-  { id: 1, title: "ताज़ा देसी टमाटर (1 किलो)", price: 40, cat: "sabzi", sellerName: "सुनीता जी", sellerArea: "शास्त्री नगर", dist: "350 मीटर", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=60" },
-  { id: 2, title: "हाथ से बुना ऊनी शॉल", price: 850, cat: "handmade", sellerName: "अजय हैंडीक्राफ्ट", sellerArea: "मॉडल टाउन", dist: "2.1 किमी", img: "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&q=60" },
-  { id: 3, title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60" },
-  { id: 4, title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60" },
-  { id: 5, title: "टेबल फैन (नया)", price: 999, cat: "electronics", sellerName: "विकास इलेक्ट्रिकल्स", sellerArea: "स्टेशन रोड", dist: "1.8 किमी", img: "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?w=400&q=60" },
-  { id: 6, title: "अचार का सेट (मिक्स)", price: 180, cat: "sabzi", sellerName: "कमला दीदी", sellerArea: "शास्त्री नगर", dist: "500 मीटर", img: "https://images.unsplash.com/photo-1626200926749-24197f80f095?w=400&q=60" },
+const demoListings = [
+  { id: "d1", title: "ताज़ा देसी टमाटर (1 किलो)", price: 40, cat: "sabzi", sellerName: "सुनीता जी", sellerArea: "शास्त्री नगर", dist: "350 मीटर", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=60", isMine: false },
+  { id: "d2", title: "हाथ से बुना ऊनी शॉल", price: 850, cat: "handmade", sellerName: "अजय हैंडीक्राफ्ट", sellerArea: "मॉडल टाउन", dist: "2.1 किमी", img: "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&q=60", isMine: false },
+  { id: "d3", title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60", isMine: false },
+  { id: "d4", title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60", isMine: false },
+  { id: "d5", title: "टेबल फैन (नया)", price: 999, cat: "electronics", sellerName: "विकास इलेक्ट्रिकल्स", sellerArea: "स्टेशन रोड", dist: "1.8 किमी", img: "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?w=400&q=60", isMine: false },
+  { id: "d6", title: "अचार का सेट (मिक्स)", price: 180, cat: "sabzi", sellerName: "कमला दीदी", sellerArea: "शास्त्री नगर", dist: "500 मीटर", img: "https://images.unsplash.com/photo-1626200926749-24197f80f095?w=400&q=60", isMine: false },
 ];
 
 let activeCategory = "sab";
 let searchText = "";
+let listings = [];
 
-// ===== 2. श्रेणियाँ (categories) दिखाना =====
+// ===== Seller Dashboard में जोड़ा गया सामान पढ़ना, और होमपेज के फॉर्मेट में बदलना =====
+function loadMyProducts() {
+  const raw = localStorage.getItem("mySellerProducts");
+  const myProducts = raw ? JSON.parse(raw) : [];
+
+  const profileRaw = localStorage.getItem("sellerProfile");
+  const profile = profileRaw ? JSON.parse(profileRaw) : null;
+  const isPremium = localStorage.getItem("isPremiumSeller") === "true";
+
+  return myProducts.map((p) => ({
+    id: "mine-" + p.id,
+    title: p.name + (p.unit ? ` (${p.unit})` : ""),
+    price: p.price,
+    cat: p.cat,
+    sellerName: profile ? profile.shopName : "आपकी दुकान (नाम अभी नहीं भरा)",
+    sellerArea: profile ? profile.area : "प्रोफाइल में इलाका भरें",
+    sellerPhone: profile ? profile.phone : "",
+    sellerLogo: profile ? profile.logo : null,
+    dist: "आपके पास",
+    img: p.img || null,
+    stock: p.stock,
+    unit: p.unit,
+    featured: p.featured,
+    isMine: true,
+    isPremiumSeller: isPremium,
+  }));
+}
+
+// ===== सबको मिलाकर लिस्ट बनाना (फीचर्ड सबसे ऊपर) =====
+function buildListings() {
+  const mine = loadMyProducts();
+  listings = [...mine, ...demoListings].sort(
+    (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+  );
+}
+
+// ===== श्रेणियाँ दिखाना =====
 function renderCategories() {
   const wrap = document.getElementById("categories");
   wrap.innerHTML = "";
@@ -38,7 +74,7 @@ function renderCategories() {
   });
 }
 
-// ===== 3. प्रोडक्ट कार्ड्स दिखाना =====
+// ===== प्रोडक्ट कार्ड्स दिखाना =====
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   grid.innerHTML = "";
@@ -57,13 +93,15 @@ function renderProducts() {
   filtered.forEach((item) => {
     const card = document.createElement("div");
     card.className = "card";
+    const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
     card.innerHTML = `
-      <img src="${item.img}" alt="${item.title}">
+      <img src="${imgSrc}" alt="${item.title}">
       <span class="dist-badge">📍 ${item.dist}</span>
+      ${item.featured ? '<span class="card-featured-tag">⭐ फीचर्ड</span>' : ""}
       <div class="card-body">
         <div class="card-title">${item.title}</div>
         <div class="card-price">₹${item.price}</div>
-        <div class="card-seller">${item.sellerName} · ${item.sellerArea}</div>
+        <div class="card-seller">🏬 ${item.sellerName} · ${item.sellerArea}</div>
       </div>
     `;
     card.addEventListener("click", () => openDetail(item));
@@ -71,22 +109,31 @@ function renderProducts() {
   });
 }
 
-// ===== 4. सामान की जानकारी वाला पॉपअप खोलना =====
+// ===== सामान की जानकारी वाला पॉपअप (दुकानदार की जानकारी सहित) =====
 function openDetail(item) {
   const modal = document.getElementById("detailModal");
+  const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
+  const logoSrc = item.sellerLogo || "https://placehold.co/80x80/1B2A4A/FFFFFF?text=🏬";
+
   modal.innerHTML = `
-    <img src="${item.img}" alt="${item.title}">
+    <img src="${imgSrc}" alt="${item.title}">
     <h2>${item.title}</h2>
     <div class="card-price" style="font-size:22px;">₹${item.price}</div>
     <div style="font-size:12px; color:#999; margin-top:4px;">📍 ${item.dist} दूर</div>
+    ${item.stock !== undefined ? `<div style="font-size:12px; color:${item.stock === 0 ? "#C0392B" : "#2E7D4F"}; margin-top:2px;">
+      ${item.stock === 0 ? "❌ स्टॉक खत्म" : `✅ ${item.stock} ${item.unit || ""} उपलब्ध`}
+    </div>` : ""}
+
     <div class="seller-box">
-      <div class="seller-avatar">${item.sellerName.charAt(0)}</div>
+      <img class="seller-avatar-img" src="${logoSrc}" alt="shop logo">
       <div class="seller-info">
-        <div class="seller-name">${item.sellerName}</div>
-        <div class="seller-area">${item.sellerArea}</div>
+        <div class="seller-name">${item.sellerName} ${item.isPremiumSeller ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
+        <div class="seller-area">📍 ${item.sellerArea}</div>
       </div>
     </div>
+
     <button class="btn-primary">📞 विक्रेता से बात करें</button>
+    ${item.isMine ? `<a href="seller-profile.html" class="shop-link-btn">🏬 दुकान की पूरी प्रोफाइल देखें</a>` : ""}
     <p style="text-align:center; font-size:11px; color:#999; margin-top:8px;">
       यह डेमो है — असली ऐप में यहाँ चैट/कॉल खुलेगा
     </p>
@@ -100,7 +147,7 @@ function closeDetail() {
   document.getElementById("detailOverlay").classList.remove("show");
 }
 
-// ===== 5. नया सामान जोड़ने वाला फॉर्म =====
+// ===== नया सामान जोड़ने वाला फॉर्म (होमपेज का "+" बटन — जल्दी टेस्ट के लिए) =====
 function fillCategoryDropdown() {
   const select = document.getElementById("itemCat");
   select.innerHTML = "";
@@ -117,7 +164,6 @@ function fillCategoryDropdown() {
 function openPostForm() {
   document.getElementById("postOverlay").classList.add("show");
 }
-
 function closePostForm() {
   document.getElementById("postOverlay").classList.remove("show");
 }
@@ -128,30 +174,29 @@ function handlePostSubmit(e) {
   const price = document.getElementById("itemPrice").value;
   const cat = document.getElementById("itemCat").value;
 
-  const newItem = {
-    id: Date.now(),
+  demoListings.unshift({
+    id: "quick-" + Date.now(),
     title: title,
     price: Number(price),
     cat: cat,
     sellerName: "आप (नया विक्रेता)",
     sellerArea: "आपका मोहल्ला",
     dist: "आपके पास",
-    img: "https://placehold.co/400x300/EDE4D3/1B2A4A?text=नया+सामान",
-  };
+    img: null,
+    isMine: false,
+  });
 
-  listings.unshift(newItem); // नई चीज़ लिस्ट में सबसे ऊपर जोड़ना
+  buildListings();
   document.getElementById("postForm").reset();
   closePostForm();
   renderProducts();
 }
 
-// ===== 6. सर्च बॉक्स =====
 function handleSearch(e) {
   searchText = e.target.value;
   renderProducts();
 }
 
-// ===== 7. शुरुआत में सब कुछ जोड़ना (event listeners) =====
 document.getElementById("searchInput").addEventListener("input", handleSearch);
 document.getElementById("postBtn").addEventListener("click", openPostForm);
 document.getElementById("cancelPost").addEventListener("click", closePostForm);
@@ -163,7 +208,8 @@ document.getElementById("postOverlay").addEventListener("click", function (e) {
   if (e.target === this) closePostForm();
 });
 
-// ===== 8. पेज खुलते ही सब कुछ दिखाना =====
+// ===== पेज खुलते ही सब कुछ दिखाना =====
 fillCategoryDropdown();
+buildListings();
 renderCategories();
 renderProducts();
