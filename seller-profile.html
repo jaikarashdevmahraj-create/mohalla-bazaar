@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>मेरी दुकान — मोहल्ला बाज़ार</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="header-links">
+        <a href="seller.html" class="about-link">📊 डैशबोर्ड</a>
+      </div>
+    </div>
+    <div class="stripe">
+      <span style="background:#E8A33D"></span>
+      <span style="background:#B33A3A"></span>
+      <span style="background:#3B6E5E"></span>
+      <span style="background:#E8A33D"></span>
+      <span style="background:#3B6E5E"></span>
+    </div>
+  </header>
+
+  <div class="seller-page">
+
+    <!-- ===== दुकान कैसी दिखेगी (ग्राहकों को) ===== -->
+    <div class="storefront-card" id="storefrontPreview"></div>
+
+    <!-- ===== प्रोफाइल एडिट फॉर्म ===== -->
+    <div class="section-box">
+      <h3>दुकान की जानकारी संपादित करें</h3>
+      <form id="profileForm">
+
+        <label>दुकान की कवर फोटो</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="bannerFile" class="file-input">
+          <label for="bannerFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+        </div>
+        <div class="img-preview-wrap" id="bannerPreviewWrap" style="display:none;">
+          <img id="bannerPreview" alt="banner preview">
+        </div>
+
+        <label>दुकान का लोगो / आपकी फोटो</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="logoFile" class="file-input">
+          <label for="logoFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+        </div>
+        <div class="img-preview-wrap logo-preview-wrap" id="logoPreviewWrap" style="display:none;">
+          <img id="logoPreview" alt="logo preview">
+        </div>
+
+        <label>दुकान का नाम</label>
+        <input type="text" id="shopName" required placeholder="जैसे: सुनीता जनरल स्टोर">
+
+        <label>मालिक का नाम</label>
+        <input type="text" id="ownerName" required placeholder="जैसे: सुनीता देवी">
+
+        <label>मोबाइल नंबर</label>
+        <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
+
+        <label>इलाका / पता</label>
+        <input type="text" id="area" required placeholder="जैसे: शास्त्री नगर, आगरा">
+
+        <label>दुकान के बारे में (छोटा परिचय)</label>
+        <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
+
+        <button type="submit" class="btn-primary">प्रोफाइल सेव करें</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="seller-profile.js"></script>
+</body>
+</html>
