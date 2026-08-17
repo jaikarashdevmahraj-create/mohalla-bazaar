@@ -877,3 +877,45 @@ body {
   font-weight: 600;
   color: #1B2A4A;
 }
+/* ===== होमपेज कार्ड पर फीचर्ड टैग ===== */
+.card-featured-tag {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #F0B84D;
+  color: #1B2A4A;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.card {
+  position: relative;
+}
+
+/* ===== दुकानदार का लोगो (गोल फोटो) पॉपअप में ===== */
+.seller-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #1B2A4A;
+}
+
+/* ===== "दुकान देखें" बटन ===== */
+.shop-link-btn {
+  display: block;
+  text-align: center;
+  width: 100%;
+  background: transparent;
+  color: #1B2A4A;
+  border: 1px solid rgba(27,42,74,0.25);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
