@@ -1,145 +1,93 @@
-function getProfile() {
-  const data = localStorage.getItem("sellerProfile");
-  return data ? JSON.parse(data) : null;
-}
-function saveProfile(p) {
-  localStorage.setItem("sellerProfile", JSON.stringify(p));
-}
-function isPremium() {
-  return localStorage.getItem("isPremiumSeller") === "true";
-}
-function getProductCount() {
-  const data = localStorage.getItem("mySellerProducts");
-  return data ? JSON.parse(data).length : 0;
-}
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>मेरी दुकान — मोहल्ला बाज़ार</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-let bannerImg = null;
-let logoImg = null;
-
-function resizeImage(file, maxSize, callback) {
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const img = new Image();
-    img.onload = function () {
-      let w = img.width, h = img.height;
-      if (w > h && w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
-      else if (h >= w && h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL("image/jpeg", 0.75));
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// ===== दुकान कैसी दिखेगी, इसका प्रीव्यू =====
-function renderStorefront() {
-  const p = getProfile();
-  const box = document.getElementById("storefrontPreview");
-
-  if (!p) {
-    box.innerHTML = `
-      <div class="storefront-empty">
-        <p>🏬 अभी आपकी दुकान की प्रोफाइल नहीं बनी है।</p>
-        <p class="premium-hint">नीचे फॉर्म भरकर अपनी दुकान बनाइए — यह वैसे ही दिखेगी जैसे ग्राहकों को दिखती है।</p>
-      </div>
-    `;
-    return;
-  }
-
-  const premium = isPremium();
-  const banner = p.banner || "https://placehold.co/600x200/1B2A4A/FFFFFF?text=दुकान+की+फोटो";
-  const logo = p.logo || "https://placehold.co/120x120/E8A33D/1B2A4A?text=🏪";
-
-  box.innerHTML = `
-    <div class="storefront-banner" style="background-image:url('${banner}')"></div>
-    <div class="storefront-body">
-      <img class="storefront-logo" src="${logo}" alt="logo">
-      <div class="storefront-info">
-        <div class="storefront-name">${p.shopName} ${premium ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
-        <div class="storefront-owner">👤 ${p.ownerName}</div>
-        <div class="storefront-area">📍 ${p.area}</div>
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="header-links">
+        <a href="seller.html" class="about-link">📊 डैशबोर्ड</a>
       </div>
     </div>
-    ${p.description ? `<p class="storefront-desc">${p.description}</p>` : ""}
-    <div class="storefront-stats">
-      <div><b>${getProductCount()}</b><span>सामान लिस्टेड</span></div>
-      <div><b>${p.joinedLabel}</b><span>से सदस्य</span></div>
-      <div><b>${premium ? "⭐ प्रीमियम" : "मुफ़्त"}</b><span>प्लान</span></div>
+    <div class="stripe">
+      <span style="background:#E8A33D"></span>
+      <span style="background:#B33A3A"></span>
+      <span style="background:#3B6E5E"></span>
+      <span style="background:#E8A33D"></span>
+      <span style="background:#3B6E5E"></span>
     </div>
-    <div class="storefront-contact">📞 ${p.phone}</div>
-  `;
-}
+  </header>
 
-// ===== मौजूदा प्रोफाइल फॉर्म में भरना (एडिट के लिए) =====
-function loadFormFromProfile() {
-  const p = getProfile();
-  if (!p) return;
-  document.getElementById("shopName").value = p.shopName || "";
-  document.getElementById("ownerName").value = p.ownerName || "";
-  document.getElementById("phone").value = p.phone || "";
-  document.getElementById("area").value = p.area || "";
-  document.getElementById("description").value = p.description || "";
-  if (p.banner) {
-    bannerImg = p.banner;
-    document.getElementById("bannerPreview").src = p.banner;
-    document.getElementById("bannerPreviewWrap").style.display = "block";
-  }
-  if (p.logo) {
-    logoImg = p.logo;
-    document.getElementById("logoPreview").src = p.logo;
-    document.getElementById("logoPreviewWrap").style.display = "block";
-  }
-}
+  <div class="seller-page">
 
-function handleBannerSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  resizeImage(file, 900, (dataUrl) => {
-    bannerImg = dataUrl;
-    document.getElementById("bannerPreview").src = dataUrl;
-    document.getElementById("bannerPreviewWrap").style.display = "block";
-  });
-}
+    <div class="storefront-card" id="storefrontPreview"></div>
 
-function handleLogoSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  resizeImage(file, 300, (dataUrl) => {
-    logoImg = dataUrl;
-    document.getElementById("logoPreview").src = dataUrl;
-    document.getElementById("logoPreviewWrap").style.display = "block";
-  });
-}
+    <div class="section-box">
+      <h3>दुकान की जानकारी संपादित करें</h3>
+      <form id="profileForm">
 
-function handleProfileSubmit(e) {
-  e.preventDefault();
-  const existing = getProfile();
+        <label>दुकान की कवर फोटो</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="bannerFile" class="file-input">
+          <label for="bannerFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+        </div>
+        <div class="img-preview-wrap" id="bannerPreviewWrap" style="display:none;">
+          <img id="bannerPreview" alt="banner preview">
+        </div>
 
-  const profile = {
-    shopName: document.getElementById("shopName").value,
-    ownerName: document.getElementById("ownerName").value,
-    phone: document.getElementById("phone").value,
-    area: document.getElementById("area").value,
-    description: document.getElementById("description").value,
-    banner: bannerImg,
-    logo: logoImg,
-    joinedLabel: existing
-      ? existing.joinedLabel
-      : new Date().toLocaleDateString("hi-IN", { month: "long", year: "numeric" }),
-  };
+        <label>दुकान का लोगो / आपकी फोटो</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="logoFile" class="file-input">
+          <label for="logoFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+        </div>
+        <div class="img-preview-wrap logo-preview-wrap" id="logoPreviewWrap" style="display:none;">
+          <img id="logoPreview" alt="logo preview">
+        </div>
 
-  saveProfile(profile);
-  renderStorefront();
-  alert("दुकान की प्रोफाइल सेव हो गई ✅");
-}
+        <label>दुकान का नाम</label>
+        <input type="text" id="shopName" required placeholder="जैसे: सुनीता जनरल स्टोर">
 
-document.getElementById("profileForm").addEventListener("submit", handleProfileSubmit);
-document.getElementById("bannerFile").addEventListener("change", handleBannerSelect);
-document.getElementById("logoFile").addEventListener("change", handleLogoSelect);
+        <label>मालिक का नाम</label>
+        <input type="text" id="ownerName" required placeholder="जैसे: सुनीता देवी">
 
-loadFormFromProfile();
-renderStorefront();
+        <label>मोबाइल नंबर</label>
+        <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
+
+        <h4 class="form-subheading">📍 पते की जानकारी</h4>
+
+        <label>राज्य</label>
+        <input type="text" id="state" required placeholder="जैसे: मध्य प्रदेश">
+
+        <label>ज़िला</label>
+        <input type="text" id="district" required placeholder="जैसे: इंदौर">
+
+        <label>तहसील</label>
+        <input type="text" id="tehsil" placeholder="जैसे: देपालपुर">
+
+        <label>गाँव / इलाका</label>
+        <input type="text" id="village" required placeholder="जैसे: शास्त्री नगर">
+
+        <label>पिन कोड (Area Code)</label>
+        <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
+
+        <label>पूरा घर/दुकान का पता</label>
+        <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
+
+        <label>दुकान के बारे में (छोटा परिचय)</label>
+        <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
+
+        <button type="submit" class="btn-primary">प्रोफाइल सेव करें</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="seller-profile.js"></script>
+</body>
+</html>
