@@ -1,0 +1,145 @@
+function getProfile() {
+  const data = localStorage.getItem("sellerProfile");
+  return data ? JSON.parse(data) : null;
+}
+function saveProfile(p) {
+  localStorage.setItem("sellerProfile", JSON.stringify(p));
+}
+function isPremium() {
+  return localStorage.getItem("isPremiumSeller") === "true";
+}
+function getProductCount() {
+  const data = localStorage.getItem("mySellerProducts");
+  return data ? JSON.parse(data).length : 0;
+}
+
+let bannerImg = null;
+let logoImg = null;
+
+function resizeImage(file, maxSize, callback) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      let w = img.width, h = img.height;
+      if (w > h && w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
+      else if (h >= w && h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL("image/jpeg", 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== दुकान कैसी दिखेगी, इसका प्रीव्यू =====
+function renderStorefront() {
+  const p = getProfile();
+  const box = document.getElementById("storefrontPreview");
+
+  if (!p) {
+    box.innerHTML = `
+      <div class="storefront-empty">
+        <p>🏬 अभी आपकी दुकान की प्रोफाइल नहीं बनी है।</p>
+        <p class="premium-hint">नीचे फॉर्म भरकर अपनी दुकान बनाइए — यह वैसे ही दिखेगी जैसे ग्राहकों को दिखती है।</p>
+      </div>
+    `;
+    return;
+  }
+
+  const premium = isPremium();
+  const banner = p.banner || "https://placehold.co/600x200/1B2A4A/FFFFFF?text=दुकान+की+फोटो";
+  const logo = p.logo || "https://placehold.co/120x120/E8A33D/1B2A4A?text=🏪";
+
+  box.innerHTML = `
+    <div class="storefront-banner" style="background-image:url('${banner}')"></div>
+    <div class="storefront-body">
+      <img class="storefront-logo" src="${logo}" alt="logo">
+      <div class="storefront-info">
+        <div class="storefront-name">${p.shopName} ${premium ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
+        <div class="storefront-owner">👤 ${p.ownerName}</div>
+        <div class="storefront-area">📍 ${p.area}</div>
+      </div>
+    </div>
+    ${p.description ? `<p class="storefront-desc">${p.description}</p>` : ""}
+    <div class="storefront-stats">
+      <div><b>${getProductCount()}</b><span>सामान लिस्टेड</span></div>
+      <div><b>${p.joinedLabel}</b><span>से सदस्य</span></div>
+      <div><b>${premium ? "⭐ प्रीमियम" : "मुफ़्त"}</b><span>प्लान</span></div>
+    </div>
+    <div class="storefront-contact">📞 ${p.phone}</div>
+  `;
+}
+
+// ===== मौजूदा प्रोफाइल फॉर्म में भरना (एडिट के लिए) =====
+function loadFormFromProfile() {
+  const p = getProfile();
+  if (!p) return;
+  document.getElementById("shopName").value = p.shopName || "";
+  document.getElementById("ownerName").value = p.ownerName || "";
+  document.getElementById("phone").value = p.phone || "";
+  document.getElementById("area").value = p.area || "";
+  document.getElementById("description").value = p.description || "";
+  if (p.banner) {
+    bannerImg = p.banner;
+    document.getElementById("bannerPreview").src = p.banner;
+    document.getElementById("bannerPreviewWrap").style.display = "block";
+  }
+  if (p.logo) {
+    logoImg = p.logo;
+    document.getElementById("logoPreview").src = p.logo;
+    document.getElementById("logoPreviewWrap").style.display = "block";
+  }
+}
+
+function handleBannerSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  resizeImage(file, 900, (dataUrl) => {
+    bannerImg = dataUrl;
+    document.getElementById("bannerPreview").src = dataUrl;
+    document.getElementById("bannerPreviewWrap").style.display = "block";
+  });
+}
+
+function handleLogoSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  resizeImage(file, 300, (dataUrl) => {
+    logoImg = dataUrl;
+    document.getElementById("logoPreview").src = dataUrl;
+    document.getElementById("logoPreviewWrap").style.display = "block";
+  });
+}
+
+function handleProfileSubmit(e) {
+  e.preventDefault();
+  const existing = getProfile();
+
+  const profile = {
+    shopName: document.getElementById("shopName").value,
+    ownerName: document.getElementById("ownerName").value,
+    phone: document.getElementById("phone").value,
+    area: document.getElementById("area").value,
+    description: document.getElementById("description").value,
+    banner: bannerImg,
+    logo: logoImg,
+    joinedLabel: existing
+      ? existing.joinedLabel
+      : new Date().toLocaleDateString("hi-IN", { month: "long", year: "numeric" }),
+  };
+
+  saveProfile(profile);
+  renderStorefront();
+  alert("दुकान की प्रोफाइल सेव हो गई ✅");
+}
+
+document.getElementById("profileForm").addEventListener("submit", handleProfileSubmit);
+document.getElementById("bannerFile").addEventListener("change", handleBannerSelect);
+document.getElementById("logoFile").addEventListener("change", handleLogoSelect);
+
+loadFormFromProfile();
+renderStorefront();
