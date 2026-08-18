@@ -978,3 +978,15 @@ body {
 .success-banner.show {
   display: block;
 }
+.edit-toggle-btn {
+  width: 100%;
+  background: white;
+  border: 1px solid rgba(27,42,74,0.2);
+  color: #1B2A4A;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 14px;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
+}
