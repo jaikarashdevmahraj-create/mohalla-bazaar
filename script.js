@@ -1,4 +1,7 @@
-// ===== डेमो सामान (हमेशा दिखने वाला सैंपल डेटा) =====
+const db = window.firebaseDB;
+const { collection, doc, getDoc, getDocs } = window.firebaseTools;
+const myDeviceId = localStorage.getItem("myDeviceSellerId") || "";
+
 const categories = [
   { id: "sab", label: "सब कुछ", emoji: "🏪" },
   { id: "sabzi", label: "सब्ज़ी-राशन", emoji: "🥕" },
@@ -13,51 +16,54 @@ const demoListings = [
   { id: "d2", title: "हाथ से बुना ऊनी शॉल", price: 850, cat: "handmade", sellerName: "अजय हैंडीक्राफ्ट", sellerArea: "मॉडल टाउन", dist: "2.1 किमी", img: "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&q=60", isMine: false },
   { id: "d3", title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60", isMine: false },
   { id: "d4", title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60", isMine: false },
-  { id: "d5", title: "टेबल फैन (नया)", price: 999, cat: "electronics", sellerName: "विकास इलेक्ट्रिकल्स", sellerArea: "स्टेशन रोड", dist: "1.8 किमी", img: "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?w=400&q=60", isMine: false },
-  { id: "d6", title: "अचार का सेट (मिक्स)", price: 180, cat: "sabzi", sellerName: "कमला दीदी", sellerArea: "शास्त्री नगर", dist: "500 मीटर", img: "https://images.unsplash.com/photo-1626200926749-24197f80f095?w=400&q=60", isMine: false },
 ];
 
 let activeCategory = "sab";
 let searchText = "";
 let listings = [];
 
-// ===== Seller Dashboard में जोड़ा गया सामान पढ़ना, और होमपेज के फॉर्मेट में बदलना =====
-function loadMyProducts() {
-  const raw = localStorage.getItem("mySellerProducts");
-  const myProducts = raw ? JSON.parse(raw) : [];
+// ===== Firebase से सारा सामान + दुकानदारों की जानकारी लाना =====
+async function loadListings() {
+  const productsSnap = await getDocs(collection(db, "products"));
+  const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  const profileRaw = localStorage.getItem("sellerProfile");
-  const profile = profileRaw ? JSON.parse(profileRaw) : null;
-  const isPremium = localStorage.getItem("isPremiumSeller") === "true";
+  const sellerIds = [...new Set(products.map((p) => p.sellerId))];
+  const sellerMap = {};
+  await Promise.all(
+    sellerIds.map(async (sid) => {
+      try {
+        const s = await getDoc(doc(db, "sellers", sid));
+        if (s.exists()) sellerMap[sid] = s.data();
+      } catch (e) {}
+    })
+  );
 
-  return myProducts.map((p) => ({
-    id: "mine-" + p.id,
-    title: p.name + (p.unit ? ` (${p.unit})` : ""),
-    price: p.price,
-    cat: p.cat,
-    sellerName: profile ? profile.shopName : "आपकी दुकान (नाम अभी नहीं भरा)",
-    sellerArea: profile ? profile.area : "प्रोफाइल में इलाका भरें",
-    sellerPhone: profile ? profile.phone : "",
-    sellerLogo: profile ? profile.logo : null,
-    dist: "आपके पास",
-    img: p.img || null,
-    stock: p.stock,
-    unit: p.unit,
-    featured: p.featured,
-    isMine: true,
-    isPremiumSeller: isPremium,
-  }));
-}
+  const fromFirebase = products.map((p) => {
+    const seller = sellerMap[p.sellerId];
+    return {
+      id: p.id,
+      title: p.name + (p.unit ? ` (${p.unit})` : ""),
+      price: p.price,
+      cat: p.cat,
+      sellerName: seller ? seller.shopName : "दुकान (प्रोफाइल अधूरी)",
+      sellerArea: seller ? [seller.village, seller.district].filter(Boolean).join(", ") : "",
+      sellerPhone: seller ? seller.phone : "",
+      sellerLogo: seller ? seller.logo : null,
+      sellerShopId: seller ? seller.shopId : "",
+      dist: "आपके आसपास",
+      img: p.img || null,
+      stock: p.stock,
+      unit: p.unit,
+      featured: p.featured,
+      isMine: p.sellerId === myDeviceId,
+    };
+  });
 
-// ===== सबको मिलाकर लिस्ट बनाना (फीचर्ड सबसे ऊपर) =====
-function buildListings() {
-  const mine = loadMyProducts();
-  listings = [...mine, ...demoListings].sort(
+  listings = [...fromFirebase, ...demoListings].sort(
     (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
   );
 }
 
-// ===== श्रेणियाँ दिखाना =====
 function renderCategories() {
   const wrap = document.getElementById("categories");
   wrap.innerHTML = "";
@@ -74,11 +80,9 @@ function renderCategories() {
   });
 }
 
-// ===== प्रोडक्ट कार्ड्स दिखाना =====
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   grid.innerHTML = "";
-
   const filtered = listings.filter((item) => {
     const matchCat = activeCategory === "sab" || item.cat === activeCategory;
     const matchSearch = item.title.toLowerCase().includes(searchText.toLowerCase());
@@ -101,15 +105,13 @@ function renderProducts() {
       <div class="card-body">
         <div class="card-title">${item.title}</div>
         <div class="card-price">₹${item.price}</div>
-        <div class="card-seller">🏬 ${item.sellerName} · ${item.sellerArea}</div>
-      </div>
-    `;
+        <div class="card-seller">🏬 ${item.sellerName} ${item.sellerArea ? "· " + item.sellerArea : ""}</div>
+      </div>`;
     card.addEventListener("click", () => openDetail(item));
     grid.appendChild(card);
   });
 }
 
-// ===== सामान की जानकारी वाला पॉपअप (दुकानदार की जानकारी सहित) =====
 function openDetail(item) {
   const modal = document.getElementById("detailModal");
   const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
@@ -119,7 +121,7 @@ function openDetail(item) {
     <img src="${imgSrc}" alt="${item.title}">
     <h2>${item.title}</h2>
     <div class="card-price" style="font-size:22px;">₹${item.price}</div>
-    <div style="font-size:12px; color:#999; margin-top:4px;">📍 ${item.dist} दूर</div>
+    <div style="font-size:12px; color:#999; margin-top:4px;">📍 ${item.dist}</div>
     ${item.stock !== undefined ? `<div style="font-size:12px; color:${item.stock === 0 ? "#C0392B" : "#2E7D4F"}; margin-top:2px;">
       ${item.stock === 0 ? "❌ स्टॉक खत्म" : `✅ ${item.stock} ${item.unit || ""} उपलब्ध`}
     </div>` : ""}
@@ -127,12 +129,12 @@ function openDetail(item) {
     <div class="seller-box">
       <img class="seller-avatar-img" src="${logoSrc}" alt="shop logo">
       <div class="seller-info">
-        <div class="seller-name">${item.sellerName} ${item.isPremiumSeller ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
-        <div class="seller-area">📍 ${item.sellerArea}</div>
+        <div class="seller-name">${item.sellerName}</div>
+        <div class="seller-area">📍 ${item.sellerArea || "इलाका उपलब्ध नहीं"}</div>
       </div>
     </div>
 
-    <button class="btn-primary">📞 विक्रेता से बात करें</button>
+    <button class="btn-primary">📞 विक्रेता से बात करें ${item.sellerPhone ? "(" + item.sellerPhone + ")" : ""}</button>
     ${item.isMine ? `<a href="seller-profile.html" class="shop-link-btn">🏬 दुकान की पूरी प्रोफाइल देखें</a>` : ""}
     <p style="text-align:center; font-size:11px; color:#999; margin-top:8px;">
       यह डेमो है — असली ऐप में यहाँ चैट/कॉल खुलेगा
@@ -147,49 +149,24 @@ function closeDetail() {
   document.getElementById("detailOverlay").classList.remove("show");
 }
 
-// ===== नया सामान जोड़ने वाला फॉर्म (होमपेज का "+" बटन — जल्दी टेस्ट के लिए) =====
 function fillCategoryDropdown() {
   const select = document.getElementById("itemCat");
   select.innerHTML = "";
-  categories
-    .filter((c) => c.id !== "sab")
-    .forEach((c) => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = `${c.emoji} ${c.label}`;
-      select.appendChild(opt);
-    });
+  categories.filter((c) => c.id !== "sab").forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = `${c.emoji} ${c.label}`;
+    select.appendChild(opt);
+  });
 }
 
-function openPostForm() {
-  document.getElementById("postOverlay").classList.add("show");
-}
-function closePostForm() {
-  document.getElementById("postOverlay").classList.remove("show");
-}
+function openPostForm() { document.getElementById("postOverlay").classList.add("show"); }
+function closePostForm() { document.getElementById("postOverlay").classList.remove("show"); }
 
 function handlePostSubmit(e) {
   e.preventDefault();
-  const title = document.getElementById("itemTitle").value;
-  const price = document.getElementById("itemPrice").value;
-  const cat = document.getElementById("itemCat").value;
-
-  demoListings.unshift({
-    id: "quick-" + Date.now(),
-    title: title,
-    price: Number(price),
-    cat: cat,
-    sellerName: "आप (नया विक्रेता)",
-    sellerArea: "आपका मोहल्ला",
-    dist: "आपके पास",
-    img: null,
-    isMine: false,
-  });
-
-  buildListings();
-  document.getElementById("postForm").reset();
+  alert("यह क्विक बटन अब बंद है — कृपया 'विक्रेता डैशबोर्ड' से जाकर सामान जोड़ें, ताकि वह असली सूची में सेव हो।");
   closePostForm();
-  renderProducts();
 }
 
 function handleSearch(e) {
@@ -201,15 +178,15 @@ document.getElementById("searchInput").addEventListener("input", handleSearch);
 document.getElementById("postBtn").addEventListener("click", openPostForm);
 document.getElementById("cancelPost").addEventListener("click", closePostForm);
 document.getElementById("postForm").addEventListener("submit", handlePostSubmit);
-document.getElementById("detailOverlay").addEventListener("click", function (e) {
-  if (e.target === this) closeDetail();
-});
-document.getElementById("postOverlay").addEventListener("click", function (e) {
-  if (e.target === this) closePostForm();
-});
+document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
+document.getElementById("postOverlay").addEventListener("click", function (e) { if (e.target === this) closePostForm(); });
 
-// ===== पेज खुलते ही सब कुछ दिखाना =====
-fillCategoryDropdown();
-buildListings();
-renderCategories();
-renderProducts();
+async function init() {
+  document.getElementById("productGrid").innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999; padding:30px 0;">लोड हो रहा है...</p>`;
+  fillCategoryDropdown();
+  await loadListings();
+  renderCategories();
+  renderProducts();
+}
+
+init();
