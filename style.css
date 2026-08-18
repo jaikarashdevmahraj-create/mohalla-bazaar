@@ -1004,3 +1004,14 @@ body {
   letter-spacing: 0.5px;
   color: #A8331F;
 }
+.delete-account-btn {
+  width: 100%;
+  background: #FDECEC;
+  border: 1px solid rgba(192,57,43,0.3);
+  color: #C0392B;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 10px;
+}
