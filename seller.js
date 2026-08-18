@@ -1,5 +1,5 @@
 const db = window.firebaseDB;
-const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where } = window.firebaseTools;
+const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc } = window.firebaseTools;
 const mySellerId = window.getMySellerId();
 
 const FREE_LIMIT = 5;
@@ -79,7 +79,7 @@ function renderPremiumCard() {
         <p>आपको मिल रहा है: अनलिमिटेड लिस्टिंग, फीचर्ड प्रोडक्ट, वेरिफाइड बैज, एडवांस्ड एनालिसिस</p>
         <button class="btn-secondary" id="downgradeBtn">प्रीमियम रद्द करें (डेमो)</button>
       </div>`;
-    document.getElementById("downgradeBtn").addEventListener("click", () => { setPremium(false); renderAll(); });
+    document.getElementById("downgradeBtn").addEventListener("click", async () => { await setPremium(false); renderAll(); });
   } else {
     card.innerHTML = `
       <div class="premium-card">
@@ -93,7 +93,7 @@ function renderPremiumCard() {
         <button class="btn-primary" id="upgradeBtn">प्रीमियम में अपग्रेड करें (डेमो)</button>
         <p class="premium-hint">यह अभी सिर्फ़ डेमो बटन है, असली पेमेंट बाद में जोड़ेंगे</p>
       </div>`;
-    document.getElementById("upgradeBtn").addEventListener("click", () => { setPremium(true); renderAll(); });
+    document.getElementById("upgradeBtn").addEventListener("click", async () => { await setPremium(true); renderAll(); });
   }
 }
 
