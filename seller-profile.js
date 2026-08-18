@@ -81,6 +81,7 @@ function renderStorefront() {
   }
 
   const premium = isPremium();
+  const premium = isPremium();
   const banner = p.banner || "https://placehold.co/600x200/1B2A4A/FFFFFF?text=दुकान+की+फोटो";
   const logo = p.logo || "https://placehold.co/120x120/E8A33D/1B2A4A?text=🏪";
   const addressLine = [p.village, p.tehsil, p.district, p.state].filter(Boolean).join(", ");
