@@ -209,7 +209,6 @@ async function deleteSellerAccount() {
   }
 
   localStorage.removeItem("mySellerProducts");
-  localStorage.removeItem("isPremiumSeller");
   localStorage.removeItem("myDeviceSellerId");
 
   alert("आपका सेलर अकाउंट डिलीट हो गया। अब आप नए सिरे से रजिस्ट्रेशन कर सकते हैं।");
@@ -240,5 +239,11 @@ document.getElementById("cancelEditProfile").addEventListener("click", () => {
   hideForm();
 });
 document.getElementById("deleteAccountBtn").addEventListener("click", deleteSellerAccount);
-
+async function togglePremiumDemo(makePremium) {
+  if (!currentProfile) return;
+  currentProfile.isPremium = makePremium;
+  await saveProfileToFirebase(currentProfile);
+  renderStorefront();
+}
+window.togglePremiumDemo = togglePremiumDemo;
 init();
