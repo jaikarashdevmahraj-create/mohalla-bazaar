@@ -52,3 +52,6 @@ function getMySellerId() {
 window.firebaseDB = db;
 window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy };
 window.getMySellerId = getMySellerId;
+window.getMySellerId = getMySellerId;
+window.firebaseAuth = auth;
+window.authTools = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
