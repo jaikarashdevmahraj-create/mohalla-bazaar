@@ -1033,3 +1033,32 @@ body {
   font-size: 13px;
   margin-top: 10px;
   }
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.auth-tab {
+  flex: 1;
+  background: white;
+  border: 1px solid rgba(27,42,74,0.15);
+  color: #1B2A4A;
+  padding: 11px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.auth-tab.active {
+  background: #1B2A4A;
+  color: white;
+  border-color: #1B2A4A;
+}
+
+.auth-note {
+  font-size: 11px;
+  color: rgba(26,26,26,0.45);
+  text-align: center;
+  margin-top: 14px;
+}
