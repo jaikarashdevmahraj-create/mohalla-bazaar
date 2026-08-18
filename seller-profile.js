@@ -13,6 +13,12 @@ function getProductCount() {
   return data ? JSON.parse(data).length : 0;
 }
 
+// ===== यूनीक शॉप आईडी बनाना (सिर्फ़ पहली बार) =====
+function generateShopId() {
+  const random = Math.floor(100000 + Math.random() * 900000); // 6 अंकों की संख्या
+  return "MB-" + random;
+}
+
 let bannerImg = null;
 let logoImg = null;
 
@@ -35,7 +41,6 @@ function resizeImage(file, maxSize, callback) {
   reader.readAsDataURL(file);
 }
 
-// ===== फॉर्म दिखाना/छुपाना =====
 function showForm() {
   document.getElementById("formSectionBox").style.display = "block";
   document.getElementById("editToggleBtn").style.display = "none";
@@ -51,7 +56,6 @@ function hideForm() {
   document.getElementById("editToggleBtn").style.display = "block";
 }
 
-// ===== दुकान का प्रीव्यू =====
 function renderStorefront() {
   const p = getProfile();
   const box = document.getElementById("storefrontPreview");
@@ -60,10 +64,10 @@ function renderStorefront() {
     box.innerHTML = `
       <div class="storefront-empty">
         <p>🏬 अभी आपकी दुकान की प्रोफाइल नहीं बनी है।</p>
-        <p class="premium-hint">नीचे फॉर्म भरकर अपनी दुकान बनाइए — यह वैसे ही दिखेगी जैसे ग्राहकों को दिखती है।</p>
+        <p class="premium-hint">नीचे फॉर्म भरकर अपनी दुकान बनाइए — रजिस्ट्रेशन होते ही आपको एक यूनीक शॉप आईडी मिलेगी।</p>
       </div>
     `;
-    showForm(); // प्रोफाइल न हो तो फॉर्म हमेशा खुला रहे
+    showForm();
     return;
   }
 
@@ -85,6 +89,7 @@ function renderStorefront() {
         <div class="storefront-area">📍 ${addressLine} — ${p.pincode}</div>
       </div>
     </div>
+    <div class="shop-id-badge">🆔 शॉप आईडी: <b>${p.shopId}</b></div>
     ${p.description ? `<p class="storefront-desc">${p.description}</p>` : ""}
     <div class="storefront-address-box">
       <span>🏠 पूरा पता:</span> ${p.fullAddress}
@@ -98,7 +103,6 @@ function renderStorefront() {
   `;
 }
 
-// ===== फॉर्म में पुरानी जानकारी भरना =====
 function loadFormFromProfile() {
   const p = getProfile();
   if (!p) return;
@@ -161,6 +165,8 @@ function handleProfileSubmit(e) {
     description: document.getElementById("description").value,
     banner: bannerImg,
     logo: logoImg,
+    // शॉप आईडी सिर्फ़ पहली बार बनेगी, दोबारा एडिट करने पर वही रहेगी
+    shopId: existing ? existing.shopId : generateShopId(),
     joinedLabel: existing
       ? existing.joinedLabel
       : new Date().toLocaleDateString("hi-IN", { month: "long", year: "numeric" }),
@@ -168,7 +174,7 @@ function handleProfileSubmit(e) {
 
   saveProfile(profile);
   renderStorefront();
-  hideForm(); // सेव होते ही फॉर्म बंद, सिर्फ़ "बदलें" बटन दिखेगा
+  hideForm();
 
   const banner = document.getElementById("successBanner");
   banner.classList.add("show");
@@ -181,14 +187,13 @@ document.getElementById("bannerFile").addEventListener("change", handleBannerSel
 document.getElementById("logoFile").addEventListener("change", handleLogoSelect);
 document.getElementById("editToggleBtn").addEventListener("click", showForm);
 document.getElementById("cancelEditProfile").addEventListener("click", () => {
-  loadFormFromProfile(); // बदलाव रद्द करके पुरानी जानकारी वापस भरना
+  loadFormFromProfile();
   hideForm();
 });
 
 loadFormFromProfile();
 renderStorefront();
 
-// पेज खुलते वक्त अगर प्रोफाइल पहले से बनी है, तो फॉर्म छुपा रहे
 if (getProfile()) {
   hideForm();
-}
+    }
