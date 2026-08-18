@@ -149,6 +149,7 @@ body {
   box-shadow: 0 2px 8px rgba(27,42,74,0.08);
   transition: transform 0.15s ease, box-shadow 0.2s ease;
   animation: fadeInUp 0.35s ease backwards;
+  position: relative;
 }
 
 .card:active {
@@ -620,6 +621,7 @@ body {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
 /* ===== प्रीमियम कार्ड ===== */
 .premium-card {
   background: white;
@@ -732,6 +734,7 @@ body {
 .mini-btn.star-active {
   background: #F0B84D;
 }
+
 /* ===== फोटो अपलोड बटन ===== */
 .file-input {
   display: none;
@@ -799,11 +802,20 @@ body {
   color: rgba(26,26,26,0.6);
 }
 
+/* फोटो के नीचे गहरा शेड, ताकि नाम हमेशा साफ़ पढ़ने लायक रहे */
 .storefront-banner {
   height: 130px;
   background-size: cover;
   background-position: center;
   background-color: #1B2A4A;
+  position: relative;
+}
+
+.storefront-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0) 100%);
 }
 
 .storefront-body {
@@ -811,7 +823,9 @@ body {
   align-items: flex-end;
   gap: 10px;
   padding: 0 14px;
-  margin-top: -34px;
+  margin-top: -58px;
+  position: relative;
+  z-index: 2;
 }
 
 .storefront-logo {
@@ -831,12 +845,14 @@ body {
 .storefront-name {
   font-weight: 800;
   font-size: 16px;
-  color: #1B2A4A;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
 .storefront-owner, .storefront-area {
   font-size: 12px;
-  color: rgba(26,26,26,0.55);
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
 .storefront-desc {
@@ -877,6 +893,7 @@ body {
   font-weight: 600;
   color: #1B2A4A;
 }
+
 /* ===== होमपेज कार्ड पर फीचर्ड टैग ===== */
 .card-featured-tag {
   position: absolute;
@@ -888,10 +905,6 @@ body {
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 8px;
-}
-
-.card {
-  position: relative;
 }
 
 /* ===== दुकानदार का लोगो (गोल फोटो) पॉपअप में ===== */
@@ -919,6 +932,7 @@ body {
   margin-top: 8px;
   box-sizing: border-box;
 }
+
 .form-subheading {
   color: #1B2A4A;
   font-size: 14px;
@@ -934,6 +948,7 @@ body {
   padding: 8px 14px;
   margin-top: 8px;
 }
+
 /* ===== section-box के अंदर वाले फॉर्म को ठीक से दिखाना ===== */
 .section-box label {
   display: block;
@@ -978,6 +993,7 @@ body {
 .success-banner.show {
   display: block;
 }
+
 .edit-toggle-btn {
   width: 100%;
   background: white;
@@ -990,6 +1006,7 @@ body {
   margin-top: 14px;
   box-shadow: 0 2px 8px rgba(27,42,74,0.07);
 }
+
 .shop-id-badge {
   margin: 10px 14px 0;
   background: #F5EFDF;
@@ -1004,6 +1021,7 @@ body {
   letter-spacing: 0.5px;
   color: #A8331F;
 }
+
 .delete-account-btn {
   width: 100%;
   background: #FDECEC;
@@ -1014,4 +1032,4 @@ body {
   font-weight: 700;
   font-size: 13px;
   margin-top: 10px;
-}
+  }
