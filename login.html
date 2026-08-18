@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>लॉगिन — मोहल्ला बाज़ार</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="header-links">
+        <a href="index.html" class="about-link">🏠 होमपेज</a>
+      </div>
+    </div>
+    <div class="stripe">
+      <span style="background:#E8A33D"></span>
+      <span style="background:#B33A3A"></span>
+      <span style="background:#3B6E5E"></span>
+      <span style="background:#E8A33D"></span>
+      <span style="background:#3B6E5E"></span>
+    </div>
+  </header>
+
+  <div class="seller-page">
+
+    <div class="success-banner" id="successBanner"></div>
+
+    <!-- ===== टैब: लॉगिन / नया अकाउंट ===== -->
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" id="tabLogin">लॉगिन करें</button>
+      <button type="button" class="auth-tab" id="tabSignup">नया अकाउंट बनाएँ</button>
+    </div>
+
+    <!-- ===== लॉगिन फॉर्म ===== -->
+    <div class="section-box" id="loginBox">
+      <h3>अपने अकाउंट में लॉगिन करें</h3>
+      <form id="loginForm">
+        <label>ईमेल</label>
+        <input type="email" id="loginEmail" required placeholder="jaise: aap@example.com">
+
+        <label>पासवर्ड</label>
+        <input type="password" id="loginPassword" required placeholder="अपना पासवर्ड डालें">
+
+        <button type="submit" class="btn-primary" id="loginBtn">लॉगिन करें</button>
+      </form>
+    </div>
+
+    <!-- ===== साइन-अप फॉर्म ===== -->
+    <div class="section-box" id="signupBox" style="display:none;">
+      <h3>नया अकाउंट बनाएँ</h3>
+      <form id="signupForm">
+        <label>आपका नाम</label>
+        <input type="text" id="signupName" required placeholder="जैसे: सुनीता देवी">
+
+        <label>ईमेल</label>
+        <input type="email" id="signupEmail" required placeholder="jaise: aap@example.com">
+
+        <label>पासवर्ड (कम से कम 6 अक्षर)</label>
+        <input type="password" id="signupPassword" required minlength="6" placeholder="नया पासवर्ड बनाएँ">
+
+        <label>आप कौन हैं?</label>
+        <select id="signupRole">
+          <option value="buyer">🛒 ग्राहक (खरीदना है)</option>
+          <option value="seller">🏬 विक्रेता (दुकान चलानी है)</option>
+        </select>
+
+        <button type="submit" class="btn-primary" id="signupBtn">अकाउंट बनाएँ</button>
+      </form>
+    </div>
+
+    <p class="auth-note">🔒 यह जानकारी सुरक्षित रहती है और सिर्फ़ आपके अकाउंट की पहचान के लिए इस्तेमाल होगी।</p>
+
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="login.js"></script>
+</body>
+</html>
