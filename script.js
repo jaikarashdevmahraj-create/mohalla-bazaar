@@ -50,6 +50,8 @@ async function loadListings() {
       sellerPhone: seller ? seller.phone : "",
       sellerLogo: seller ? seller.logo : null,
       sellerShopId: seller ? seller.shopId : "",
+      sellerShopId: seller ? seller.shopId : "",
+      isPremiumSeller: seller ? !!seller.isPremium : false,
       dist: "आपके आसपास",
       img: p.img || null,
       stock: p.stock,
@@ -129,7 +131,7 @@ function openDetail(item) {
     <div class="seller-box">
       <img class="seller-avatar-img" src="${logoSrc}" alt="shop logo">
       <div class="seller-info">
-        <div class="seller-name">${item.sellerName}</div>
+        <div class="seller-name">${item.sellerName} ${item.isPremiumSeller ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
         <div class="seller-area">📍 ${item.sellerArea || "इलाका उपलब्ध नहीं"}</div>
       </div>
     </div>
