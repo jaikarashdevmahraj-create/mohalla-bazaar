@@ -35,6 +35,22 @@ function resizeImage(file, maxSize, callback) {
   reader.readAsDataURL(file);
 }
 
+// ===== फॉर्म दिखाना/छुपाना =====
+function showForm() {
+  document.getElementById("formSectionBox").style.display = "block";
+  document.getElementById("editToggleBtn").style.display = "none";
+  const hasProfile = !!getProfile();
+  document.getElementById("cancelEditProfile").style.display = hasProfile ? "block" : "none";
+  document.getElementById("formSectionTitle").textContent = hasProfile
+    ? "दुकान की जानकारी बदलें"
+    : "दुकान की जानकारी भरें";
+}
+
+function hideForm() {
+  document.getElementById("formSectionBox").style.display = "none";
+  document.getElementById("editToggleBtn").style.display = "block";
+}
+
 // ===== दुकान का प्रीव्यू =====
 function renderStorefront() {
   const p = getProfile();
@@ -47,6 +63,7 @@ function renderStorefront() {
         <p class="premium-hint">नीचे फॉर्म भरकर अपनी दुकान बनाइए — यह वैसे ही दिखेगी जैसे ग्राहकों को दिखती है।</p>
       </div>
     `;
+    showForm(); // प्रोफाइल न हो तो फॉर्म हमेशा खुला रहे
     return;
   }
 
@@ -81,7 +98,7 @@ function renderStorefront() {
   `;
 }
 
-// ===== फॉर्म में पुरानी जानकारी भरना (एडिट के लिए) =====
+// ===== फॉर्म में पुरानी जानकारी भरना =====
 function loadFormFromProfile() {
   const p = getProfile();
   if (!p) return;
@@ -151,8 +168,8 @@ function handleProfileSubmit(e) {
 
   saveProfile(profile);
   renderStorefront();
+  hideForm(); // सेव होते ही फॉर्म बंद, सिर्फ़ "बदलें" बटन दिखेगा
 
-  // ऊपर स्क्रॉल करके साफ़ हरा मैसेज दिखाना
   const banner = document.getElementById("successBanner");
   banner.classList.add("show");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -162,6 +179,16 @@ function handleProfileSubmit(e) {
 document.getElementById("profileForm").addEventListener("submit", handleProfileSubmit);
 document.getElementById("bannerFile").addEventListener("change", handleBannerSelect);
 document.getElementById("logoFile").addEventListener("change", handleLogoSelect);
+document.getElementById("editToggleBtn").addEventListener("click", showForm);
+document.getElementById("cancelEditProfile").addEventListener("click", () => {
+  loadFormFromProfile(); // बदलाव रद्द करके पुरानी जानकारी वापस भरना
+  hideForm();
+});
 
 loadFormFromProfile();
 renderStorefront();
+
+// पेज खुलते वक्त अगर प्रोफाइल पहले से बनी है, तो फॉर्म छुपा रहे
+if (getProfile()) {
+  hideForm();
+}
