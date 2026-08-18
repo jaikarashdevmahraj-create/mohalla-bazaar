@@ -3,7 +3,7 @@ const { doc, setDoc, getDoc, deleteDoc } = window.firebaseTools;
 const mySellerId = window.getMySellerId();
 
 function isPremium() {
-  return localStorage.getItem("isPremiumSeller") === "true";
+  return currentProfile ? !!currentProfile.isPremium : false;
 }
 function getProductCount() {
   const data = localStorage.getItem("mySellerProducts");
