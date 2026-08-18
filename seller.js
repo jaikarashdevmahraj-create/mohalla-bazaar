@@ -15,11 +15,18 @@ let editingId = null;
 let currentProductImg = null;
 let myProductsCache = [];
 
+let mySellerProfile = null;
+
 function isPremium() {
-  return localStorage.getItem("isPremiumSeller") === "true";
+  return mySellerProfile ? !!mySellerProfile.isPremium : false;
 }
-function setPremium(value) {
-  localStorage.setItem("isPremiumSeller", value ? "true" : "false");
+async function setPremium(value) {
+  if (!mySellerProfile) {
+    alert("पहले 'मेरी दुकान' में जाकर प्रोफाइल बनाइए, तभी प्रीमियम चालू हो सकता है।");
+    return;
+  }
+  mySellerProfile.isPremium = value;
+  await setDoc(doc(db, "sellers", mySellerId), mySellerProfile);
 }
 
 function resizeImage(file, maxSize, callback) {
