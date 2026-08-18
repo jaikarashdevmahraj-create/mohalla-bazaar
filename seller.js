@@ -14,7 +14,6 @@ const catLabels = {
 let editingId = null;
 let currentProductImg = null;
 let myProductsCache = [];
-
 let mySellerProfile = null;
 
 function isPremium() {
@@ -62,7 +61,6 @@ function handleImageSelect(e) {
   });
 }
 
-// ===== Firebase से मेरा सामान लाना =====
 async function fetchMyProducts() {
   const q = query(collection(db, "products"), where("sellerId", "==", mySellerId));
   const snap = await getDocs(q);
@@ -281,6 +279,8 @@ function renderLimitNote() {
 }
 
 async function renderAll() {
+  const profileSnap = await getDoc(doc(db, "sellers", mySellerId));
+  mySellerProfile = profileSnap.exists() ? profileSnap.data() : null;
   myProductsCache = await fetchMyProducts();
   renderPremiumCard();
   renderTitle();
