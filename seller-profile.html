@@ -25,11 +25,18 @@
   </header>
 
   <div class="seller-page">
-<div class="success-banner" id="successBanner">✅ आपकी दुकान की प्रोफाइल सेव हो गई!</div>
+
+    <div class="success-banner" id="successBanner">✅ आपकी दुकान की प्रोफाइल सेव हो गई!</div>
     <div class="storefront-card" id="storefrontPreview"></div>
 
-    <div class="section-box">
-      <h3>दुकान की जानकारी संपादित करें</h3>
+    <!-- ===== जब प्रोफाइल पहले से बनी हो, यह बटन दिखेगा ===== -->
+    <button type="button" class="edit-toggle-btn" id="editToggleBtn" style="display:none;">
+      ✏️ दुकान की जानकारी बदलें
+    </button>
+
+    <!-- ===== फॉर्म वाला बॉक्स — नई दुकान बनाते वक्त हमेशा दिखेगा, पुरानी दुकान में छुपा रहेगा ===== -->
+    <div class="section-box" id="formSectionBox">
+      <h3 id="formSectionTitle">दुकान की जानकारी भरें</h3>
       <form id="profileForm">
 
         <label>दुकान की कवर फोटो</label>
@@ -82,7 +89,8 @@
         <label>दुकान के बारे में (छोटा परिचय)</label>
         <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
 
-        <button type="submit" class="btn-primary">प्रोफाइल सेव करें</button>
+        <button type="submit" class="btn-primary" id="profileSubmitBtn">प्रोफाइल सेव करें</button>
+        <button type="button" class="btn-secondary" id="cancelEditProfile" style="display:none;">बंद करें</button>
       </form>
     </div>
 
