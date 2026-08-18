@@ -151,7 +151,12 @@ function handleProfileSubmit(e) {
 
   saveProfile(profile);
   renderStorefront();
-  alert("दुकान की प्रोफाइल सेव हो गई ✅");
+
+  // ऊपर स्क्रॉल करके साफ़ हरा मैसेज दिखाना
+  const banner = document.getElementById("successBanner");
+  banner.classList.add("show");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setTimeout(() => banner.classList.remove("show"), 3000);
 }
 
 document.getElementById("profileForm").addEventListener("submit", handleProfileSubmit);
