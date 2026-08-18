@@ -197,3 +197,28 @@ renderStorefront();
 if (getProfile()) {
   hideForm();
     }
+// ===== सेलर अकाउंट पूरी तरह डिलीट करना =====
+function deleteSellerAccount() {
+  const sure = confirm(
+    "⚠️ क्या आप वाकई अपना पूरा सेलर अकाउंट डिलीट करना चाहते हैं?\n\nइससे आपकी दुकान की प्रोफाइल, शॉप आईडी, सारा सामान, और प्रीमियम स्टेटस — सब हमेशा के लिए मिट जाएगा।"
+  );
+  if (!sure) return;
+
+  const doubleSure = confirm("पक्का? यह वापस नहीं होगा।");
+  if (!doubleSure) return;
+
+  localStorage.removeItem("sellerProfile");
+  localStorage.removeItem("mySellerProducts");
+  localStorage.removeItem("isPremiumSeller");
+
+  alert("आपका सेलर अकाउंट डिलीट हो गया। अब आप नए सिरे से रजिस्ट्रेशन कर सकते हैं।");
+  location.reload();
+}
+
+function renderDeleteButton() {
+  const btn = document.getElementById("deleteAccountBtn");
+  btn.style.display = getProfile() ? "block" : "none";
+}
+
+document.getElementById("deleteAccountBtn").addEventListener("click", deleteSellerAccount);
+renderDeleteButton();
