@@ -35,6 +35,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 // ===== इस फोन की "सेलर आईडी" — यह पहचानती है कि यह डेटा किसका है =====
 function getMySellerId() {
