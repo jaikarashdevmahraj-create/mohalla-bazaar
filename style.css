@@ -990,3 +990,17 @@ body {
   margin-top: 14px;
   box-shadow: 0 2px 8px rgba(27,42,74,0.07);
 }
+.shop-id-badge {
+  margin: 10px 14px 0;
+  background: #F5EFDF;
+  color: #1B2A4A;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.shop-id-badge b {
+  letter-spacing: 0.5px;
+  color: #A8331F;
+}
