@@ -2,6 +2,10 @@ const db = window.firebaseDB;
 const { doc, setDoc, getDoc, deleteDoc } = window.firebaseTools;
 const mySellerId = window.getMySellerId();
 
+let bannerImg = null;
+let logoImg = null;
+let currentProfile = null;
+
 function isPremium() {
   return currentProfile ? !!currentProfile.isPremium : false;
 }
@@ -13,10 +17,6 @@ function generateShopId() {
   const random = Math.floor(100000 + Math.random() * 900000);
   return "MB-" + random;
 }
-
-let bannerImg = null;
-let logoImg = null;
-let currentProfile = null;
 
 function resizeImage(file, maxSize, quality, callback) {
   const reader = new FileReader();
@@ -80,7 +80,6 @@ function renderStorefront() {
     return;
   }
 
-  const premium = isPremium();
   const premium = isPremium();
   const banner = p.banner || "https://placehold.co/600x200/1B2A4A/FFFFFF?text=दुकान+की+फोटो";
   const logo = p.logo || "https://placehold.co/120x120/E8A33D/1B2A4A?text=🏪";
@@ -220,6 +219,14 @@ function renderDeleteButton() {
   document.getElementById("deleteAccountBtn").style.display = currentProfile ? "block" : "none";
 }
 
+async function togglePremiumDemo(makePremium) {
+  if (!currentProfile) return;
+  currentProfile.isPremium = makePremium;
+  await saveProfileToFirebase(currentProfile);
+  renderStorefront();
+}
+window.togglePremiumDemo = togglePremiumDemo;
+
 async function init() {
   document.getElementById("storefrontPreview").innerHTML =
     '<p class="empty-note">लोड हो रहा है...</p>';
@@ -240,11 +247,5 @@ document.getElementById("cancelEditProfile").addEventListener("click", () => {
   hideForm();
 });
 document.getElementById("deleteAccountBtn").addEventListener("click", deleteSellerAccount);
-async function togglePremiumDemo(makePremium) {
-  if (!currentProfile) return;
-  currentProfile.isPremium = makePremium;
-  await saveProfileToFirebase(currentProfile);
-  renderStorefront();
-}
-window.togglePremiumDemo = togglePremiumDemo;
+
 init();
