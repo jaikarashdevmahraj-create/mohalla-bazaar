@@ -1016,7 +1016,12 @@ body {
   border-radius: 8px;
   display: inline-block;
 }
-
+.order-product-name {
+  font-size: 13px;
+  color: #A8331F;
+  font-weight: 600;
+  margin-top: -4px;
+}
 .shop-id-badge b {
   letter-spacing: 0.5px;
   color: #A8331F;
