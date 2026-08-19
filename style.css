@@ -1067,3 +1067,60 @@ body {
   text-align: center;
   margin-top: 14px;
 }
+.order-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.order-tab {
+  flex: 0 0 auto;
+  background: white;
+  border: 1px solid rgba(27,42,74,0.15);
+  color: #1B2A4A;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.order-tab.active {
+  background: #1B2A4A;
+  color: white;
+  border-color: #1B2A4A;
+}
+
+.order-card {
+  margin-top: 12px;
+}
+
+.order-card-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.order-card-top img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #EDE4D3;
+  flex-shrink: 0;
+}
+
+.order-buyer-info {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(27,42,74,0.15);
+  font-size: 12px;
+  color: #333;
+  line-height: 1.8;
+}
+
+.order-date {
+  color: rgba(26,26,26,0.4);
+  font-size: 11px;
+}
