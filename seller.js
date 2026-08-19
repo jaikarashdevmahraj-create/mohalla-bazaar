@@ -1,6 +1,7 @@
 const db = window.firebaseDB;
+const auth = window.firebaseAuth;
 const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc } = window.firebaseTools;
-const mySellerId = window.getMySellerId();
+const { onAuthStateChanged, signOut } = window.authTools;
 
 const FREE_LIMIT = 5;
 const catLabels = {
@@ -15,6 +16,7 @@ let editingId = null;
 let currentProductImg = null;
 let myProductsCache = [];
 let mySellerProfile = null;
+let myUid = null;
 
 function isPremium() {
   return mySellerProfile ? !!mySellerProfile.isPremium : false;
@@ -25,7 +27,7 @@ async function setPremium(value) {
     return;
   }
   mySellerProfile.isPremium = value;
-  await setDoc(doc(db, "sellers", mySellerId), mySellerProfile);
+  await setDoc(doc(db, "sellers", myUid), mySellerProfile);
 }
 
 function resizeImage(file, maxSize, callback) {
@@ -62,7 +64,7 @@ function handleImageSelect(e) {
 }
 
 async function fetchMyProducts() {
-  const q = query(collection(db, "products"), where("sellerId", "==", mySellerId));
+  const q = query(collection(db, "products"), where("sellerId", "==", myUid));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
@@ -136,7 +138,7 @@ function renderAdvanced(products) {
     <div class="analysis-row"><span>सबसे सस्ता सामान</span><b>${cheapest.name} (₹${cheapest.price})</b></div>
     <div class="analysis-row"><span>इस हफ़्ते जोड़ा गया</span><b>${addedThisWeek} सामान</b></div>
     <div class="analysis-row"><span>फीचर्ड सामान</span><b>${featuredCount}</b></div>
-    <p class="premium-hint">बिक्री का रुझान असली ऑर्डर आने पर दिखेगा</p>`;
+    <p class="premium-hint">बिक्री का रुझान "मेरे ऑर्डर" पेज पर दिखेगा</p>`;
 }
 
 function renderCatBars(products) {
@@ -250,7 +252,7 @@ async function handleSubmit(e) {
     } else {
       await addDoc(collection(db, "products"), {
         ...data,
-        sellerId: mySellerId,
+        sellerId: myUid,
         featured: false,
         createdAt: Date.now(),
       });
@@ -279,7 +281,7 @@ function renderLimitNote() {
 }
 
 async function renderAll() {
-  const profileSnap = await getDoc(doc(db, "sellers", mySellerId));
+  const profileSnap = await getDoc(doc(db, "sellers", myUid));
   mySellerProfile = profileSnap.exists() ? profileSnap.data() : null;
   myProductsCache = await fetchMyProducts();
   renderPremiumCard();
@@ -299,5 +301,21 @@ document.getElementById("removeImgBtn").addEventListener("click", () => {
   document.getElementById("pImgFile").value = "";
   document.getElementById("imgPreviewWrap").style.display = "none";
 });
+document.getElementById("logoutLink").addEventListener("click", async (e) => {
+  e.preventDefault();
+  await signOut(auth);
+  window.location.href = "index.html";
+});
 
-renderAll();
+// ===== लॉगिन चेक — बिना लॉगिन कोई भी यह पेज नहीं देख सकता =====
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html?next=seller.html";
+    return;
+  }
+  myUid = user.uid;
+  document.getElementById("userEmailLabel").textContent = user.email;
+  document.getElementById("authLoading").style.display = "none";
+  document.getElementById("pageContent").style.display = "block";
+  await renderAll();
+});
