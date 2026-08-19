@@ -13,7 +13,7 @@
       <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
       <div class="header-links">
         <a href="seller.html" class="seller-link">🛍️ विक्रेता डैशबोर्ड</a>
-        <a href="about.html" class="about-link">ℹ️ बारे में</a>
+        <a href="#" id="authLink" class="about-link">लॉगिन</a>
       </div>
     </div>
     <div class="location">📍 शास्त्री नगर, आपके 3 किमी के दायरे में</div>
@@ -33,27 +33,33 @@
 
   <main class="grid" id="productGrid"></main>
 
-  <button class="fab" id="postBtn">+</button>
-
   <div class="modal-overlay" id="detailOverlay">
     <div class="modal" id="detailModal"></div>
   </div>
 
-  <div class="modal-overlay" id="postOverlay">
+  <!-- ===== ऑर्डर फॉर्म (कितना चाहिए + कहाँ भेजना है) ===== -->
+  <div class="modal-overlay" id="orderOverlay">
     <div class="modal">
-      <h2>अपना सामान लिस्ट करें</h2>
-      <form id="postForm">
-        <label>सामान का नाम</label>
-        <input type="text" id="itemTitle" placeholder="जैसे: घर की बनी अचार बोतल" required>
+      <h2>ऑर्डर की जानकारी भरें</h2>
+      <p id="orderProductName" class="order-product-name"></p>
+      <form id="orderForm">
+        <label>कितनी मात्रा चाहिए?</label>
+        <input type="number" id="orderQty" min="1" value="1" required>
 
-        <label>कीमत (₹)</label>
-        <input type="number" id="itemPrice" placeholder="जैसे: 150" required>
+        <label>आपका नाम</label>
+        <input type="text" id="orderName" required placeholder="जैसे: रमेश कुमार">
 
-        <label>श्रेणी</label>
-        <select id="itemCat"></select>
+        <label>मोबाइल नंबर</label>
+        <input type="tel" id="orderPhone" required placeholder="जैसे: 98765 43210">
 
-        <button type="submit" class="btn-primary">लिस्ट करें</button>
-        <button type="button" class="btn-secondary" id="cancelPost">रद्द करें</button>
+        <label>डिलीवरी पता (सामान कहाँ भेजना है)</label>
+        <input type="text" id="orderAddress" required placeholder="पूरा पता लिखें">
+
+        <label>कोई खास सूचना (वैकल्पिक)</label>
+        <input type="text" id="orderNote" placeholder="जैसे: शाम 5 बजे के बाद घर पर मिलूंगा">
+
+        <button type="submit" class="btn-primary" id="orderSubmitBtn">ऑर्डर भेजें</button>
+        <button type="button" class="btn-secondary" id="cancelOrder">रद्द करें</button>
       </form>
     </div>
   </div>
