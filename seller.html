@@ -27,71 +27,81 @@
 
   <div class="seller-page">
 
-    <h1 id="pageTitle">विक्रेता डैशबोर्ड</h1>
-    <p class="seller-note">यह डेटा अभी सिर्फ़ आपके इस फोन/ब्राउज़र में सेव है।</p>
+    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
 
-    <div id="premiumCard"></div>
+    <div id="pageContent" style="display:none;">
 
-    <div class="stat-grid" id="statGrid"></div>
+      <h1 id="pageTitle">विक्रेता डैशबोर्ड</h1>
+      <p class="seller-note">आपका अकाउंट: <b id="userEmailLabel"></b> · <a href="#" id="logoutLink">लॉगआउट</a></p>
 
-    <div class="section-box" id="advancedSection"></div>
+      <div id="premiumCard"></div>
 
-    <div class="section-box">
-      <h3>श्रेणी के हिसाब से सामान</h3>
-      <div id="catBars"></div>
-    </div>
+      <div class="stat-grid" id="statGrid"></div>
 
-    <div class="section-box">
-      <h3 id="formTitle">नया सामान जोड़ें</h3>
-      <p class="limit-note" id="limitNote"></p>
-      <form id="sellerForm">
-        <label>सामान का नाम</label>
-        <input type="text" id="pName" required placeholder="जैसे: देसी टमाटर">
+      <div class="section-box" id="advancedSection"></div>
 
-        <label>कीमत (₹ प्रति यूनिट)</label>
-        <input type="number" id="pPrice" required placeholder="जैसे: 40">
+      <div class="section-box">
+        <h3>श्रेणी के हिसाब से सामान</h3>
+        <div id="catBars"></div>
+      </div>
 
-        <label>यूनिट (किस हिसाब से बेच रहे हैं)</label>
-        <select id="pUnit">
-          <option value="पीस">पीस (नग)</option>
-          <option value="किलो">किलो (kg)</option>
-          <option value="ग्राम">ग्राम (g)</option>
-          <option value="लीटर">लीटर (L)</option>
-          <option value="दर्जन">दर्जन</option>
-          <option value="पैकेट">पैकेट</option>
-          <option value="बॉक्स">बॉक्स</option>
-        </select>
+      <div class="section-box">
+        <h3 id="formTitle">नया सामान जोड़ें</h3>
+        <p class="limit-note" id="limitNote"></p>
+        <form id="sellerForm">
+          <label>सामान का नाम</label>
+          <input type="text" id="pName" required placeholder="जैसे: देसी टमाटर">
 
-        <label>स्टॉक में कितनी मात्रा है</label>
-        <input type="number" id="pStock" required placeholder="जैसे: 25">
+          <label>कीमत (₹ प्रति यूनिट)</label>
+          <input type="number" id="pPrice" required placeholder="जैसे: 40">
 
-        <label>श्रेणी</label>
-        <select id="pCat">
-          <option value="sabzi">🥕 सब्ज़ी-राशन</option>
-          <option value="kapde">👕 कपड़े</option>
-          <option value="ghar">🛋️ घरेलू सामान</option>
-          <option value="electronics">🔌 इलेक्ट्रॉनिक्स</option>
-          <option value="handmade">🧶 हस्तशिल्प</option>
-        </select>
+          <label>यूनिट (किस हिसाब से बेच रहे हैं)</label>
+          <select id="pUnit">
+            <option value="पीस">पीस (नग)</option>
+            <option value="किलो">किलो (kg)</option>
+            <option value="ग्राम">ग्राम (g)</option>
+            <option value="लीटर">लीटर (L)</option>
+            <option value="दर्जन">दर्जन</option>
+            <option value="पैकेट">पैकेट</option>
+            <option value="बॉक्स">बॉक्स</option>
+          </select>
 
-        <label>सामान की फोटो</label>
-        <div class="upload-row">
-          <input type="file" accept="image/*" id="pImgFile" class="file-input">
-          <label for="pImgFile" class="upload-btn">🖼️ गैलरी से फोटो चुनें</label>
-        </div>
-        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none;">
-          <img id="pImgPreview" alt="preview">
-          <button type="button" id="removeImgBtn" class="remove-img-btn">✕ हटाएँ</button>
-        </div>
+          <label>स्टॉक में कितनी मात्रा है</label>
+          <input type="number" id="pStock" required placeholder="जैसे: 25">
 
-        <button type="submit" class="btn-primary" id="submitBtn">सामान जोड़ें</button>
-        <button type="button" class="btn-secondary" id="cancelEdit" style="display:none;">एडिट रद्द करें</button>
-      </form>
-    </div>
+          <label>श्रेणी</label>
+          <select id="pCat">
+            <option value="sabzi">🥕 सब्ज़ी-राशन</option>
+            <option value="kapde">👕 कपड़े</option>
+            <option value="ghar">🛋️ घरेलू सामान</option>
+            <option value="electronics">🔌 इलेक्ट्रॉनिक्स</option>
+            <option value="handmade">🧶 हस्तशिल्प</option>
+          </select>
 
-    <div class="section-box">
-      <h3>मेरा सामान (<span id="countLabel">0</span>)</h3>
-      <div id="myProducts"></div>
+          <label>सामान की फोटो</label>
+          <div class="upload-row">
+            <input type="file" accept="image/*" id="pImgFile" class="file-input">
+            <label for="pImgFile" class="upload-btn">🖼️ गैलरी से फोटो चुनें</label>
+          </div>
+          <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none;">
+            <img id="pImgPreview" alt="preview">
+            <button type="button" id="removeImgBtn" class="remove-img-btn">✕ हटाएँ</button>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submitBtn">सामान जोड़ें</button>
+          <button type="button" class="btn-secondary" id="cancelEdit" style="display:none;">एडिट रद्द करें</button>
+        </form>
+      </div>
+
+      <div class="section-box">
+        <h3>मेरा सामान (<span id="countLabel">0</span>)</h3>
+        <div id="myProducts"></div>
+      </div>
+
+      <a href="seller-orders.html" class="edit-toggle-btn" style="display:block; text-align:center; text-decoration:none; margin-top:16px;">
+        📦 मेरे सारे ऑर्डर देखें
+      </a>
+
     </div>
 
   </div>
