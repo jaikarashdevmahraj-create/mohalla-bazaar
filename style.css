@@ -1124,3 +1124,69 @@ body {
   color: rgba(26,26,26,0.4);
   font-size: 11px;
 }
+.menu-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 22px;
+  padding: 4px 8px;
+  margin-right: 4px;
+}
+
+.side-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,16,30,0.5);
+  z-index: 40;
+}
+
+.side-menu-overlay.show {
+  display: block;
+}
+
+.side-menu {
+  background: #FAF5EA;
+  width: 78%;
+  max-width: 300px;
+  height: 100%;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  animation: slideInLeft 0.2s ease;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.side-menu-header {
+  background: #1B2A4A;
+  color: white;
+  padding: 18px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.close-menu-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+}
+
+.side-menu-item {
+  display: block;
+  padding: 14px 18px;
+  color: #1A1A1A;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(27,42,74,0.08);
+}
+
+.side-menu-item:active {
+  background: rgba(27,42,74,0.06);
+}
