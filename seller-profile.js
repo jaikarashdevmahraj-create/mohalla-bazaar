@@ -1,17 +1,18 @@
 const db = window.firebaseDB;
+const auth = window.firebaseAuth;
 const { doc, setDoc, getDoc, deleteDoc } = window.firebaseTools;
-const mySellerId = window.getMySellerId();
+const { onAuthStateChanged, signOut } = window.authTools;
 
 let bannerImg = null;
 let logoImg = null;
 let currentProfile = null;
+let myUid = null;
 
 function isPremium() {
   return currentProfile ? !!currentProfile.isPremium : false;
 }
 function getProductCount() {
-  const data = localStorage.getItem("mySellerProducts");
-  return data ? JSON.parse(data).length : 0;
+  return currentProfile && currentProfile._productCount ? currentProfile._productCount : 0;
 }
 function generateShopId() {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -39,7 +40,7 @@ function resizeImage(file, maxSize, quality, callback) {
 
 async function fetchProfile() {
   try {
-    const snap = await getDoc(doc(db, "sellers", mySellerId));
+    const snap = await getDoc(doc(db, "sellers", myUid));
     return snap.exists() ? snap.data() : null;
   } catch (err) {
     console.error("Profile load error:", err);
@@ -48,7 +49,7 @@ async function fetchProfile() {
 }
 
 async function saveProfileToFirebase(profile) {
-  await setDoc(doc(db, "sellers", mySellerId), profile);
+  await setDoc(doc(db, "sellers", myUid), profile);
 }
 
 function showForm() {
@@ -172,6 +173,7 @@ async function handleProfileSubmit(e) {
     banner: bannerImg,
     logo: logoImg,
     shopId: (existing && existing.shopId) ? existing.shopId : generateShopId(),
+    isPremium: existing ? !!existing.isPremium : false,
     joinedLabel: existing
       ? existing.joinedLabel
       : new Date().toLocaleDateString("hi-IN", { month: "long", year: "numeric" }),
@@ -197,21 +199,18 @@ async function handleProfileSubmit(e) {
 }
 
 async function deleteSellerAccount() {
-  const sure = confirm("⚠️ क्या आप वाकई अपना पूरा सेलर अकाउंट डिलीट करना चाहते हैं?\n\nइससे आपकी दुकान की प्रोफाइल, शॉप आईडी, सारा सामान, और प्रीमियम स्टेटस — सब हमेशा के लिए मिट जाएगा।");
+  const sure = confirm("⚠️ क्या आप वाकई अपना पूरा सेलर अकाउंट डिलीट करना चाहते हैं?\n\nइससे आपकी दुकान की प्रोफाइल, शॉप आईडी, सारा सामान, और प्रीमियम स्टेटस — सब हमेशा के लिए मिट जाएगा (आपका लॉगिन अकाउंट बना रहेगा)।");
   if (!sure) return;
   const doubleSure = confirm("पक्का? यह वापस नहीं होगा।");
   if (!doubleSure) return;
 
   try {
-    await deleteDoc(doc(db, "sellers", mySellerId));
+    await deleteDoc(doc(db, "sellers", myUid));
   } catch (err) {
     console.error(err);
   }
 
-  localStorage.removeItem("mySellerProducts");
-  localStorage.removeItem("myDeviceSellerId");
-
-  alert("आपका सेलर अकाउंट डिलीट हो गया। अब आप नए सिरे से रजिस्ट्रेशन कर सकते हैं।");
+  alert("आपकी दुकान की प्रोफाइल डिलीट हो गई। अब आप नए सिरे से रजिस्ट्रेशन कर सकते हैं।");
   location.reload();
 }
 
@@ -227,10 +226,8 @@ async function togglePremiumDemo(makePremium) {
 }
 window.togglePremiumDemo = togglePremiumDemo;
 
-async function init() {
-  document.getElementById("storefrontPreview").innerHTML =
-    '<p class="empty-note">लोड हो रहा है...</p>';
-
+async function loadPage() {
+  document.getElementById("storefrontPreview").innerHTML = '<p class="empty-note">लोड हो रहा है...</p>';
   currentProfile = await fetchProfile();
   loadFormFromProfile();
   renderStorefront();
@@ -248,4 +245,14 @@ document.getElementById("cancelEditProfile").addEventListener("click", () => {
 });
 document.getElementById("deleteAccountBtn").addEventListener("click", deleteSellerAccount);
 
-init();
+// ===== लॉगिन चेक — बिना लॉगिन कोई भी यह पेज नहीं देख सकता =====
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html?next=seller-profile.html";
+    return;
+  }
+  myUid = user.uid;
+  document.getElementById("authLoading").style.display = "none";
+  document.getElementById("pageContent").style.display = "block";
+  await loadPage();
+});
