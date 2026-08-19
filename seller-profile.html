@@ -27,75 +27,82 @@
   <div class="seller-page">
 
     <div class="success-banner" id="successBanner">✅ आपकी दुकान की प्रोफाइल सेव हो गई!</div>
-    <div class="storefront-card" id="storefrontPreview"></div>
 
-<!-- ===== जब प्रोफाइल पहले से बनी हो, यह बटन दिखेगा ===== -->
-    <button type="button" class="edit-toggle-btn" id="editToggleBtn" style="display:none;">
-      ✏️ दुकान की जानकारी बदलें
-    </button>
+    <!-- ===== जब तक लॉगिन चेक हो रहा है ===== -->
+    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
 
-    <button type="button" class="delete-account-btn" id="deleteAccountBtn" style="display:none;">
-      🗑️ मेरा सेलर अकाउंट डिलीट करें
-    </button>
+    <!-- ===== असली कंटेंट — लॉगिन के बाद दिखेगा ===== -->
+    <div id="pageContent" style="display:none;">
 
-    <!-- ===== फॉर्म वाला बॉक्स — नई दुकान बनाते वक्त हमेशा दिखेगा, पुरानी दुकान में छुपा रहेगा ===== -->
-    <div class="section-box" id="formSectionBox">
-      <h3 id="formSectionTitle">दुकान की जानकारी भरें</h3>
-      <form id="profileForm">
+      <div class="storefront-card" id="storefrontPreview"></div>
 
-        <label>दुकान की कवर फोटो</label>
-        <div class="upload-row">
-          <input type="file" accept="image/*" id="bannerFile" class="file-input">
-          <label for="bannerFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
-        </div>
-        <div class="img-preview-wrap" id="bannerPreviewWrap" style="display:none;">
-          <img id="bannerPreview" alt="banner preview">
-        </div>
+      <button type="button" class="edit-toggle-btn" id="editToggleBtn" style="display:none;">
+        ✏️ दुकान की जानकारी बदलें
+      </button>
 
-        <label>दुकान का लोगो / आपकी फोटो</label>
-        <div class="upload-row">
-          <input type="file" accept="image/*" id="logoFile" class="file-input">
-          <label for="logoFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
-        </div>
-        <div class="img-preview-wrap logo-preview-wrap" id="logoPreviewWrap" style="display:none;">
-          <img id="logoPreview" alt="logo preview">
-        </div>
+      <button type="button" class="delete-account-btn" id="deleteAccountBtn" style="display:none;">
+        🗑️ मेरा सेलर अकाउंट डिलीट करें
+      </button>
 
-        <label>दुकान का नाम</label>
-        <input type="text" id="shopName" required placeholder="जैसे: सुनीता जनरल स्टोर">
+      <div class="section-box" id="formSectionBox">
+        <h3 id="formSectionTitle">दुकान की जानकारी भरें</h3>
+        <form id="profileForm">
 
-        <label>मालिक का नाम</label>
-        <input type="text" id="ownerName" required placeholder="जैसे: सुनीता देवी">
+          <label>दुकान की कवर फोटो</label>
+          <div class="upload-row">
+            <input type="file" accept="image/*" id="bannerFile" class="file-input">
+            <label for="bannerFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+          </div>
+          <div class="img-preview-wrap" id="bannerPreviewWrap" style="display:none;">
+            <img id="bannerPreview" alt="banner preview">
+          </div>
 
-        <label>मोबाइल नंबर</label>
-        <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
+          <label>दुकान का लोगो / आपकी फोटो</label>
+          <div class="upload-row">
+            <input type="file" accept="image/*" id="logoFile" class="file-input">
+            <label for="logoFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+          </div>
+          <div class="img-preview-wrap logo-preview-wrap" id="logoPreviewWrap" style="display:none;">
+            <img id="logoPreview" alt="logo preview">
+          </div>
 
-        <h4 class="form-subheading">📍 पते की जानकारी</h4>
+          <label>दुकान का नाम</label>
+          <input type="text" id="shopName" required placeholder="जैसे: सुनीता जनरल स्टोर">
 
-        <label>राज्य</label>
-        <input type="text" id="state" required placeholder="जैसे: मध्य प्रदेश">
+          <label>मालिक का नाम</label>
+          <input type="text" id="ownerName" required placeholder="जैसे: सुनीता देवी">
 
-        <label>ज़िला</label>
-        <input type="text" id="district" required placeholder="जैसे: इंदौर">
+          <label>मोबाइल नंबर</label>
+          <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
 
-        <label>तहसील</label>
-        <input type="text" id="tehsil" placeholder="जैसे: देपालपुर">
+          <h4 class="form-subheading">📍 पते की जानकारी</h4>
 
-        <label>गाँव / इलाका</label>
-        <input type="text" id="village" required placeholder="जैसे: शास्त्री नगर">
+          <label>राज्य</label>
+          <input type="text" id="state" required placeholder="जैसे: मध्य प्रदेश">
 
-        <label>पिन कोड (Area Code)</label>
-        <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
+          <label>ज़िला</label>
+          <input type="text" id="district" required placeholder="जैसे: इंदौर">
 
-        <label>पूरा घर/दुकान का पता</label>
-        <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
+          <label>तहसील</label>
+          <input type="text" id="tehsil" placeholder="जैसे: देपालपुर">
 
-        <label>दुकान के बारे में (छोटा परिचय)</label>
-        <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
+          <label>गाँव / इलाका</label>
+          <input type="text" id="village" required placeholder="जैसे: शास्त्री नगर">
 
-        <button type="submit" class="btn-primary" id="profileSubmitBtn">प्रोफाइल सेव करें</button>
-        <button type="button" class="btn-secondary" id="cancelEditProfile" style="display:none;">बंद करें</button>
-      </form>
+          <label>पिन कोड (Area Code)</label>
+          <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
+
+          <label>पूरा घर/दुकान का पता</label>
+          <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
+
+          <label>दुकान के बारे में (छोटा परिचय)</label>
+          <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
+
+          <button type="submit" class="btn-primary" id="profileSubmitBtn">प्रोफाइल सेव करें</button>
+          <button type="button" class="btn-secondary" id="cancelEditProfile" style="display:none;">बंद करें</button>
+        </form>
+      </div>
+
     </div>
 
   </div>
