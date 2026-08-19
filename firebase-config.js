@@ -9,8 +9,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore,
-import {
-  getFirestore,
   collection,
   doc,
   setDoc,
@@ -35,7 +33,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ===== इस फोन की "सेलर आईडी" — यह पहचानती है कि यह डेटा किसका है =====
@@ -51,7 +48,6 @@ function getMySellerId() {
 // बाकी फाइलों में इस्तेमाल करने के लिए एक्सपोर्ट करना
 window.firebaseDB = db;
 window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy };
-window.getMySellerId = getMySellerId;
 window.getMySellerId = getMySellerId;
 window.firebaseAuth = auth;
 window.authTools = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
