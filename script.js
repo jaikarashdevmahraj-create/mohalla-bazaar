@@ -228,13 +228,35 @@ function handleSearch(e) {
 
 function updateAuthLink() {
   const link = document.getElementById("authLink");
+  const accountMenuLink = document.getElementById("accountMenuLink");
+  const ordersMenuLink = document.getElementById("ordersMenuLink");
+
   if (currentUser) {
-    link.textContent = "👤 मेरा अकाउंट";
+    link.textContent = "👤 खाता";
     link.href = "my-orders.html";
+    accountMenuLink.textContent = "👤 मेरा अकाउंट (लॉगआउट)";
+    accountMenuLink.href = "#";
+    accountMenuLink.onclick = async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.reload();
+    };
+    ordersMenuLink.href = "my-orders.html";
   } else {
     link.textContent = "लॉगिन";
     link.href = "login.html";
+    accountMenuLink.textContent = "👤 लॉगिन / अकाउंट बनाएँ";
+    accountMenuLink.href = "login.html";
+    accountMenuLink.onclick = null;
+    ordersMenuLink.href = "login.html?next=my-orders.html";
   }
+}
+
+function openSideMenu() {
+  document.getElementById("sideMenuOverlay").classList.add("show");
+}
+function closeSideMenu() {
+  document.getElementById("sideMenuOverlay").classList.remove("show");
 }
 
 document.getElementById("searchInput").addEventListener("input", handleSearch);
