@@ -1,6 +1,7 @@
 const db = window.firebaseDB;
-const { collection, doc, getDoc, getDocs } = window.firebaseTools;
-const myDeviceId = localStorage.getItem("myDeviceSellerId") || "";
+const auth = window.firebaseAuth;
+const { collection, doc, getDoc, getDocs, addDoc } = window.firebaseTools;
+const { onAuthStateChanged, signOut } = window.authTools;
 
 const categories = [
   { id: "sab", label: "सब कुछ", emoji: "🏪" },
@@ -12,17 +13,18 @@ const categories = [
 ];
 
 const demoListings = [
-  { id: "d1", title: "ताज़ा देसी टमाटर (1 किलो)", price: 40, cat: "sabzi", sellerName: "सुनीता जी", sellerArea: "शास्त्री नगर", dist: "350 मीटर", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=60", isMine: false },
-  { id: "d2", title: "हाथ से बुना ऊनी शॉल", price: 850, cat: "handmade", sellerName: "अजय हैंडीक्राफ्ट", sellerArea: "मॉडल टाउन", dist: "2.1 किमी", img: "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&q=60", isMine: false },
-  { id: "d3", title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60", isMine: false },
-  { id: "d4", title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60", isMine: false },
+  { id: "d1", title: "ताज़ा देसी टमाटर (1 किलो)", price: 40, cat: "sabzi", sellerName: "सुनीता जी", sellerArea: "शास्त्री नगर", dist: "350 मीटर", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=60", isDemo: true },
+  { id: "d2", title: "हाथ से बुना ऊनी शॉल", price: 850, cat: "handmade", sellerName: "अजय हैंडीक्राफ्ट", sellerArea: "मॉडल टाउन", dist: "2.1 किमी", img: "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&q=60", isDemo: true },
+  { id: "d3", title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60", isDemo: true },
+  { id: "d4", title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60", isDemo: true },
 ];
 
 let activeCategory = "sab";
 let searchText = "";
 let listings = [];
+let currentUser = null;
+let orderTargetItem = null;
 
-// ===== Firebase से सारा सामान + दुकानदारों की जानकारी लाना =====
 async function loadListings() {
   const productsSnap = await getDocs(collection(db, "products"));
   const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -45,18 +47,20 @@ async function loadListings() {
       title: p.name + (p.unit ? ` (${p.unit})` : ""),
       price: p.price,
       cat: p.cat,
+      unitLabel: p.unit,
+      sellerId: p.sellerId,
       sellerName: seller ? seller.shopName : "दुकान (प्रोफाइल अधूरी)",
       sellerArea: seller ? [seller.village, seller.district].filter(Boolean).join(", ") : "",
       sellerPhone: seller ? seller.phone : "",
       sellerLogo: seller ? seller.logo : null,
-      sellerShopId: seller ? seller.shopId : "",
       isPremiumSeller: seller ? !!seller.isPremium : false,
       dist: "आपके आसपास",
       img: p.img || null,
       stock: p.stock,
       unit: p.unit,
       featured: p.featured,
-      isMine: p.sellerId === myDeviceId,
+      isMine: currentUser && p.sellerId === currentUser.uid,
+      isDemo: false,
     };
   });
 
@@ -118,6 +122,12 @@ function openDetail(item) {
   const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
   const logoSrc = item.sellerLogo || "https://placehold.co/80x80/1B2A4A/FFFFFF?text=🏬";
 
+  const orderButtonHtml = item.isDemo
+    ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह एक डेमो सामान है, इसे ऑर्डर नहीं किया जा सकता।</p>`
+    : item.isMine
+    ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह आपकी अपनी दुकान का सामान है।</p>`
+    : `<button class="btn-primary" id="startOrderBtn">🛒 ऑर्डर करें</button>`;
+
   modal.innerHTML = `
     <img src="${imgSrc}" alt="${item.title}">
     <h2>${item.title}</h2>
@@ -135,39 +145,80 @@ function openDetail(item) {
       </div>
     </div>
 
-    <button class="btn-primary">📞 विक्रेता से बात करें ${item.sellerPhone ? "(" + item.sellerPhone + ")" : ""}</button>
+    ${orderButtonHtml}
     ${item.isMine ? `<a href="seller-profile.html" class="shop-link-btn">🏬 दुकान की पूरी प्रोफाइल देखें</a>` : ""}
-    <p style="text-align:center; font-size:11px; color:#999; margin-top:8px;">
-      यह डेमो है — असली ऐप में यहाँ चैट/कॉल खुलेगा
-    </p>
     <button class="btn-secondary" id="closeDetail">बंद करें</button>
   `;
   document.getElementById("detailOverlay").classList.add("show");
   document.getElementById("closeDetail").addEventListener("click", closeDetail);
+
+  const orderBtn = document.getElementById("startOrderBtn");
+  if (orderBtn) orderBtn.addEventListener("click", () => startOrder(item));
 }
 
 function closeDetail() {
   document.getElementById("detailOverlay").classList.remove("show");
 }
 
-function fillCategoryDropdown() {
-  const select = document.getElementById("itemCat");
-  select.innerHTML = "";
-  categories.filter((c) => c.id !== "sab").forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = `${c.emoji} ${c.label}`;
-    select.appendChild(opt);
-  });
+// ===== ऑर्डर फॉर्म शुरू करना =====
+function startOrder(item) {
+  if (!currentUser) {
+    alert("ऑर्डर करने के लिए पहले लॉगिन करना ज़रूरी है।");
+    window.location.href = "login.html?next=index.html";
+    return;
+  }
+  orderTargetItem = item;
+  closeDetail();
+  document.getElementById("orderProductName").textContent = `${item.title} — ₹${item.price} प्रति ${item.unit || "यूनिट"}`;
+  document.getElementById("orderQty").value = 1;
+  document.getElementById("orderOverlay").classList.add("show");
 }
 
-function openPostForm() { document.getElementById("postOverlay").classList.add("show"); }
-function closePostForm() { document.getElementById("postOverlay").classList.remove("show"); }
+function closeOrderForm() {
+  document.getElementById("orderOverlay").classList.remove("show");
+  orderTargetItem = null;
+}
 
-function handlePostSubmit(e) {
+async function handleOrderSubmit(e) {
   e.preventDefault();
-  alert("यह क्विक बटन अब बंद है — कृपया 'विक्रेता डैशबोर्ड' से जाकर सामान जोड़ें, ताकि वह असली सूची में सेव हो।");
-  closePostForm();
+  if (!orderTargetItem || !currentUser) return;
+
+  const btn = document.getElementById("orderSubmitBtn");
+  btn.disabled = true;
+  btn.textContent = "भेजा जा रहा है...";
+
+  const qty = Number(document.getElementById("orderQty").value);
+  const order = {
+    productId: orderTargetItem.id,
+    productName: orderTargetItem.title,
+    productImg: orderTargetItem.img || null,
+    price: orderTargetItem.price,
+    unit: orderTargetItem.unit || "",
+    quantity: qty,
+    totalAmount: orderTargetItem.price * qty,
+    sellerId: orderTargetItem.sellerId,
+    sellerName: orderTargetItem.sellerName,
+    buyerId: currentUser.uid,
+    buyerName: document.getElementById("orderName").value,
+    buyerPhone: document.getElementById("orderPhone").value,
+    deliveryAddress: document.getElementById("orderAddress").value,
+    note: document.getElementById("orderNote").value,
+    status: "pending",
+    createdAt: Date.now(),
+  };
+
+  try {
+    await addDoc(collection(db, "orders"), order);
+    alert("✅ आपका ऑर्डर भेज दिया गया है! विक्रेता के स्वीकार करने का इंतज़ार करें। आप 'मेरे ऑर्डर' पेज पर स्थिति देख सकते हैं।");
+    closeOrderForm();
+    document.getElementById("orderForm").reset();
+  } catch (err) {
+    console.error(err);
+    alert("ऑर्डर भेजने में दिक्कत आई। दोबारा कोशिश करें।");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "ऑर्डर भेजें";
+  }
 }
 
 function handleSearch(e) {
@@ -175,19 +226,32 @@ function handleSearch(e) {
   renderProducts();
 }
 
+function updateAuthLink() {
+  const link = document.getElementById("authLink");
+  if (currentUser) {
+    link.textContent = "👤 मेरा अकाउंट";
+    link.href = "my-orders.html";
+  } else {
+    link.textContent = "लॉगिन";
+    link.href = "login.html";
+  }
+}
+
 document.getElementById("searchInput").addEventListener("input", handleSearch);
-document.getElementById("postBtn").addEventListener("click", openPostForm);
-document.getElementById("cancelPost").addEventListener("click", closePostForm);
-document.getElementById("postForm").addEventListener("submit", handlePostSubmit);
 document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
-document.getElementById("postOverlay").addEventListener("click", function (e) { if (e.target === this) closePostForm(); });
+document.getElementById("orderOverlay").addEventListener("click", function (e) { if (e.target === this) closeOrderForm(); });
+document.getElementById("cancelOrder").addEventListener("click", closeOrderForm);
+document.getElementById("orderForm").addEventListener("submit", handleOrderSubmit);
 
 async function init() {
   document.getElementById("productGrid").innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999; padding:30px 0;">लोड हो रहा है...</p>`;
-  fillCategoryDropdown();
   await loadListings();
   renderCategories();
   renderProducts();
 }
 
-init();
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  updateAuthLink();
+  await init();
+});
