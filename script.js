@@ -258,7 +258,11 @@ function openSideMenu() {
 function closeSideMenu() {
   document.getElementById("sideMenuOverlay").classList.remove("show");
 }
-
+document.getElementById("menuBtn").addEventListener("click", openSideMenu);
+document.getElementById("closeMenuBtn").addEventListener("click", closeSideMenu);
+document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeSideMenu();
+});
 document.getElementById("searchInput").addEventListener("input", handleSearch);
 document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
 document.getElementById("orderOverlay").addEventListener("click", function (e) { if (e.target === this) closeOrderForm(); });
