@@ -50,7 +50,6 @@ async function loadListings() {
       sellerPhone: seller ? seller.phone : "",
       sellerLogo: seller ? seller.logo : null,
       sellerShopId: seller ? seller.shopId : "",
-      sellerShopId: seller ? seller.shopId : "",
       isPremiumSeller: seller ? !!seller.isPremium : false,
       dist: "आपके आसपास",
       img: p.img || null,
