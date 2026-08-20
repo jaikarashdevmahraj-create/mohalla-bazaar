@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, getDoc, getDocs, addDoc } = window.firebaseTools;
+const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const categories = [
