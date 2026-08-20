@@ -159,10 +159,41 @@ function openDetail(item) {
 
   const orderBtn = document.getElementById("startOrderBtn");
   if (orderBtn) orderBtn.addEventListener("click", () => startOrder(item));
+
+  const cartBtn = document.getElementById("addToCartBtn");
+  if (cartBtn) cartBtn.addEventListener("click", () => addToCart(item));
 }
 
 function closeDetail() {
   document.getElementById("detailOverlay").classList.remove("show");
+}
+
+async function addToCart(item) {
+  if (!currentUser) {
+    alert("कार्ट में डालने के लिए पहले लॉगिन करना ज़रूरी है।");
+    window.location.href = "login.html?next=index.html";
+    return;
+  }
+  const cartItem = {
+    productId: item.id,
+    title: item.title,
+    price: item.price,
+    unit: item.unit || "",
+    img: item.img || null,
+    sellerId: item.sellerId,
+    sellerName: item.sellerName,
+    qty: 1,
+  };
+  try {
+    await setDoc(doc(db, "carts", currentUser.uid), {
+      items: arrayUnion(cartItem),
+    }, { merge: true });
+    alert("✅ सामान कार्ट में डाल दिया गया!");
+    closeDetail();
+  } catch (err) {
+    console.error(err);
+    alert("कार्ट में डालने में दिक्कत आई।");
+  }
 }
 
 // ===== ऑर्डर फॉर्म शुरू करना =====
@@ -263,16 +294,17 @@ function openSideMenu() {
 function closeSideMenu() {
   document.getElementById("sideMenuOverlay").classList.remove("show");
 }
+
+document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
+document.getElementById("orderOverlay").addEventListener("click", function (e) { if (e.target === this) closeOrderForm(); });
+document.getElementById("cancelOrder").addEventListener("click", closeOrderForm);
+document.getElementById("orderForm").addEventListener("submit", handleOrderSubmit);
 document.getElementById("menuBtn").addEventListener("click", openSideMenu);
 document.getElementById("closeMenuBtn").addEventListener("click", closeSideMenu);
 document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
   if (e.target === e.currentTarget) closeSideMenu();
 });
 document.getElementById("searchInput").addEventListener("input", handleSearch);
-document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
-document.getElementById("orderOverlay").addEventListener("click", function (e) { if (e.target === this) closeOrderForm(); });
-document.getElementById("cancelOrder").addEventListener("click", closeOrderForm);
-document.getElementById("orderForm").addEventListener("submit", handleOrderSubmit);
 
 async function init() {
   document.getElementById("productGrid").innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999; padding:30px 0;">लोड हो रहा है...</p>`;
