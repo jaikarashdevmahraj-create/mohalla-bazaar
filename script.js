@@ -126,7 +126,12 @@ function openDetail(item) {
     ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह एक डेमो सामान है, इसे ऑर्डर नहीं किया जा सकता।</p>`
     : item.isMine
     ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह आपकी अपनी दुकान का सामान है।</p>`
-    : `<button class="btn-primary" id="startOrderBtn">🛒 ऑर्डर करें</button>`;
+    : `
+      <div class="detail-btn-row">
+        <button class="btn-secondary-outline" id="addToCartBtn">🛒 कार्ट में डालें</button>
+        <button class="btn-primary" id="startOrderBtn" style="margin-top:0;">⚡ अभी ऑर्डर करें</button>
+      </div>
+    `;
 
   modal.innerHTML = `
     <img src="${imgSrc}" alt="${item.title}">
