@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc } = window.firebaseTools;
+const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc, orderBy } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const FREE_LIMIT = 5;
@@ -17,6 +17,13 @@ let currentProductImg = null;
 let myProductsCache = [];
 let mySellerProfile = null;
 let myUid = null;
+let myAcceptedOrders = [];
+
+async function fetchAcceptedOrders() {
+  const q = query(collection(db, "orders"), where("sellerId", "==", myUid), where("status", "==", "accepted"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
 
 function isPremium() {
   return mySellerProfile ? !!mySellerProfile.isPremium : false;
@@ -131,14 +138,39 @@ function renderAdvanced(products) {
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const addedThisWeek = products.filter((p) => (p.createdAt || 0) > weekAgo).length;
   const featuredCount = products.filter((p) => p.featured).length;
+
+  // ===== असली बिक्री के आंकड़े (सिर्फ़ Accept किए गए ऑर्डर से) =====
+  const totalSales = myAcceptedOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+  const salesThisWeek = myAcceptedOrders
+    .filter((o) => (o.createdAt || 0) > weekAgo)
+    .reduce((s, o) => s + (o.totalAmount || 0), 0);
+
+  const salesByProduct = {};
+  myAcceptedOrders.forEach((o) => {
+    salesByProduct[o.productName] = (salesByProduct[o.productName] || 0) + o.quantity;
+  });
+  let bestSeller = "अभी कोई नहीं";
+  let bestSellerQty = 0;
+  Object.keys(salesByProduct).forEach((name) => {
+    if (salesByProduct[name] > bestSellerQty) {
+      bestSellerQty = salesByProduct[name];
+      bestSeller = name;
+    }
+  });
+
   box.innerHTML = `
     <h3>📊 एडवांस्ड एनालिसिस</h3>
-    <div class="analysis-row"><span>औसत कीमत</span><b>₹${avgPrice}</b></div>
+    <div class="analysis-row"><span>💰 कुल बिक्री (स्वीकार किए ऑर्डर)</span><b>₹${totalSales.toLocaleString("en-IN")}</b></div>
+    <div class="analysis-row"><span>📅 इस हफ़्ते की बिक्री</span><b>₹${salesThisWeek.toLocaleString("en-IN")}</b></div>
+    <div class="analysis-row"><span>🏆 सबसे ज़्यादा बिकने वाला</span><b>${bestSeller}${bestSellerQty ? ` (${bestSellerQty} बार)` : ""}</b></div>
+    <div class="analysis-row"><span>📦 कुल स्वीकृत ऑर्डर</span><b>${myAcceptedOrders.length}</b></div>
+    <div class="analysis-row"><span>औसत कीमत (लिस्टिंग)</span><b>₹${avgPrice}</b></div>
     <div class="analysis-row"><span>सबसे महँगा सामान</span><b>${highest.name} (₹${highest.price})</b></div>
     <div class="analysis-row"><span>सबसे सस्ता सामान</span><b>${cheapest.name} (₹${cheapest.price})</b></div>
     <div class="analysis-row"><span>इस हफ़्ते जोड़ा गया</span><b>${addedThisWeek} सामान</b></div>
     <div class="analysis-row"><span>फीचर्ड सामान</span><b>${featuredCount}</b></div>
-    <p class="premium-hint">बिक्री का रुझान "मेरे ऑर्डर" पेज पर दिखेगा</p>`;
+    <a href="seller-orders.html" class="shop-link-btn" style="margin-top:10px;">📦 सारे ऑर्डर देखें</a>
+  `;
 }
 
 function renderCatBars(products) {
@@ -284,6 +316,7 @@ async function renderAll() {
   const profileSnap = await getDoc(doc(db, "sellers", myUid));
   mySellerProfile = profileSnap.exists() ? profileSnap.data() : null;
   myProductsCache = await fetchMyProducts();
+  myAcceptedOrders = await fetchAcceptedOrders();
   renderPremiumCard();
   renderTitle();
   renderStats(myProductsCache);
