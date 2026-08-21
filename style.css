@@ -1210,3 +1210,51 @@ body {
 .detail-btn-row .btn-primary {
   flex: 1;
 }
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(27,42,74,0.15);
+  margin-bottom: 4px;
+}
+
+.cart-total-row b {
+  color: #A8331F;
+  font-size: 20px;
+}
+
+.cart-qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(27,42,74,0.15);
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(27,42,74,0.2);
+  background: white;
+  color: #1B2A4A;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.qty-value {
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+}
+
+.cart-item-total {
+  flex: 1;
+  text-align: right;
+  font-size: 13px;
+  color: #A8331F;
+  font-weight: 700;
+}
