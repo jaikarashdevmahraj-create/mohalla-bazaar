@@ -33,6 +33,24 @@
       <h1>मेरे ऑर्डर</h1>
       <p class="seller-note">आपका अकाउंट: <b id="userEmailLabel"></b> · <a href="#" id="logoutLink">लॉगआउट</a></p>
 
+      <button type="button" class="edit-toggle-btn" id="editProfileToggleBtn">✏️ मेरी जानकारी (नाम, फोन, पता) बदलें</button>
+
+      <div class="section-box" id="buyerProfileBox" style="display:none;">
+        <h3>मेरी जानकारी</h3>
+        <form id="buyerProfileForm">
+          <label>आपका नाम</label>
+          <input type="text" id="buyerName" required placeholder="जैसे: रमेश कुमार">
+
+          <label>मोबाइल नंबर</label>
+          <input type="tel" id="buyerPhone" required placeholder="जैसे: 98765 43210">
+
+          <label>आपका डिफ़ॉल्ट पता</label>
+          <input type="text" id="buyerAddress" required placeholder="पूरा पता लिखें">
+
+          <button type="submit" class="btn-primary" id="buyerProfileSubmitBtn">सेव करें</button>
+        </form>
+      </div>
+
       <div class="order-tabs" id="orderTabs">
         <button type="button" class="order-tab active" data-filter="all">सभी</button>
         <button type="button" class="order-tab" data-filter="pending">⏳ पेंडिंग</button>
