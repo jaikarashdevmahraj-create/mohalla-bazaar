@@ -1261,3 +1261,70 @@ body {
 #buyerProfileBox {
   margin-top: 12px;
 }
+/* ===== स्वागत बैनर ===== */
+.welcome-banner {
+  padding: 14px 16px 6px;
+}
+
+.welcome-greeting {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1B2A4A;
+}
+
+.welcome-sub {
+  font-size: 12px;
+  color: rgba(26,26,26,0.55);
+  margin-top: 2px;
+}
+
+/* ===== स्केलेटन लोडिंग ===== */
+.skeleton-card {
+  cursor: default;
+}
+
+.skeleton-img {
+  width: 100%;
+  height: 110px;
+  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ===== खाली स्क्रीन (कुछ न मिलने पर) ===== */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.empty-state-emoji {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.empty-state-title {
+  font-weight: 700;
+  color: #1B2A4A;
+  font-size: 15px;
+  margin: 0;
+}
+
+.empty-state-sub {
+  font-size: 12px;
+  color: rgba(26,26,26,0.5);
+  margin-top: 4px;
+}
