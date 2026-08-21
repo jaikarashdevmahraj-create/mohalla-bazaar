@@ -62,9 +62,22 @@ window.removeItem = async function (idx) {
   renderCart();
 };
 
-function openCheckout() {
+async function openCheckout() {
   const total = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   document.getElementById("checkoutSummary").textContent = `${cartItems.length} सामान · कुल ₹${total}`;
+
+  try {
+    const snap = await getDoc(doc(db, "buyers", myUid));
+    if (snap.exists()) {
+      const p = snap.data();
+      document.getElementById("checkoutName").value = p.name || "";
+      document.getElementById("checkoutPhone").value = p.phone || "";
+      document.getElementById("checkoutAddress").value = p.address || "";
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
   document.getElementById("checkoutOverlay").classList.add("show");
 }
 function closeCheckout() {
