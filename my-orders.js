@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, query, where, getDocs } = window.firebaseTools;
+const { collection, query, where, getDocs, doc, setDoc, getDoc } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 let allOrders = [];
@@ -21,6 +21,46 @@ async function fetchOrders(uid) {
   return orders;
 }
 
+let myUid = null;
+
+async function fetchBuyerProfile() {
+  const snap = await getDoc(doc(db, "buyers", myUid));
+  return snap.exists() ? snap.data() : null;
+}
+
+async function saveBuyerProfile(profile) {
+  await setDoc(doc(db, "buyers", myUid), profile);
+}
+
+function toggleBuyerProfileForm() {
+  const box = document.getElementById("buyerProfileBox");
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+async function handleBuyerProfileSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById("buyerProfileSubmitBtn");
+  btn.disabled = true;
+  btn.textContent = "सेव हो रहा है...";
+
+  const profile = {
+    name: document.getElementById("buyerName").value,
+    phone: document.getElementById("buyerPhone").value,
+    address: document.getElementById("buyerAddress").value,
+  };
+
+  try {
+    await saveBuyerProfile(profile);
+    alert("✅ आपकी जानकारी सेव हो गई। अब ऑर्डर करते वक्त यह अपने आप भर जाएगी।");
+    document.getElementById("buyerProfileBox").style.display = "none";
+  } catch (err) {
+    console.error(err);
+    alert("सेव करने में दिक्कत आई।");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "सेव करें";
+  }
+}
 function renderOrdersList() {
   const wrap = document.getElementById("ordersList");
   const filtered = activeFilter === "all" ? allOrders : allOrders.filter((o) => o.status === activeFilter);
@@ -69,14 +109,24 @@ document.getElementById("logoutLink").addEventListener("click", async (e) => {
   window.location.href = "index.html";
 });
 
+document.getElementById("editProfileToggleBtn").addEventListener("click", toggleBuyerProfileForm);
+document.getElementById("buyerProfileForm").addEventListener("submit", handleBuyerProfileSubmit);
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html?next=my-orders.html";
     return;
   }
+  myUid = user.uid;
   document.getElementById("userEmailLabel").textContent = user.email;
   document.getElementById("authLoading").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
+
+  const profile = await fetchBuyerProfile();
+  if (profile) {
+    document.getElementById("buyerName").value = profile.name || "";
+    document.getElementById("buyerPhone").value = profile.phone || "";
+    document.getElementById("buyerAddress").value = profile.address || "";
+  }
 
   allOrders = await fetchOrders(user.uid);
   renderOrdersList();
