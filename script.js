@@ -25,6 +25,38 @@ let listings = [];
 let currentUser = null;
 let orderTargetItem = null;
 
+function renderWelcomeBanner() {
+  const box = document.getElementById("welcomeBanner");
+  const hour = new Date().getHours();
+  let greeting = "नमस्ते 👋";
+  if (hour < 12) greeting = "सुप्रभात ☀️";
+  else if (hour < 17) greeting = "नमस्ते 👋";
+  else greeting = "शुभ संध्या 🌆";
+
+  box.innerHTML = `
+    <div class="welcome-text">
+      <div class="welcome-greeting">${greeting}</div>
+      <div class="welcome-sub">आपके आसपास के भरोसेमंद विक्रेताओं से खरीदारी करें</div>
+    </div>
+  `;
+}
+
+function renderSkeleton() {
+  const grid = document.getElementById("productGrid");
+  let html = "";
+  for (let i = 0; i < 6; i++) {
+    html += `
+      <div class="card skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="card-body">
+          <div class="skeleton-line" style="width:80%"></div>
+          <div class="skeleton-line" style="width:40%; margin-top:8px;"></div>
+        </div>
+      </div>`;
+  }
+  grid.innerHTML = html;
+}
+
 async function loadListings() {
   const productsSnap = await getDocs(collection(db, "products"));
   const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -95,7 +127,12 @@ function renderProducts() {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999; padding:30px 0;">इस श्रेणी में अभी कुछ नहीं मिला।</p>`;
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-emoji">🔍</div>
+        <p class="empty-state-title">कुछ नहीं मिला</p>
+        <p class="empty-state-sub">कोई और श्रेणी आज़माएँ या सर्च बदलकर देखें</p>
+      </div>`;
     return;
   }
 
@@ -104,7 +141,7 @@ function renderProducts() {
     card.className = "card";
     const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
     card.innerHTML = `
-      <img src="${imgSrc}" alt="${item.title}">
+      <img src="${imgSrc}" alt="${item.title}" loading="lazy">
       <span class="dist-badge">📍 ${item.dist}</span>
       ${item.featured ? '<span class="card-featured-tag">⭐ फीचर्ड</span>' : ""}
       <div class="card-body">
@@ -196,7 +233,6 @@ async function addToCart(item) {
   }
 }
 
-// ===== ऑर्डर फॉर्म शुरू करना =====
 function startOrder(item) {
   if (!currentUser) {
     alert("ऑर्डर करने के लिए पहले लॉगिन करना ज़रूरी है।");
@@ -307,7 +343,8 @@ document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
 document.getElementById("searchInput").addEventListener("input", handleSearch);
 
 async function init() {
-  document.getElementById("productGrid").innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999; padding:30px 0;">लोड हो रहा है...</p>`;
+  renderWelcomeBanner();
+  renderSkeleton();
   await loadListings();
   renderCategories();
   renderProducts();
