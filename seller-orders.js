@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, query, where, getDocs, doc, updateDoc, orderBy } = window.firebaseTools;
+const { collection, query, where, getDocs, doc, updateDoc, orderBy, onSnapshot } = window.firebaseTools;
 const { onAuthStateChanged } = window.authTools;
 
 let myUid = null;
@@ -123,4 +123,10 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("authLoading").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
   await refresh();
+
+  // ===== पेज खुला हो तो नया ऑर्डर आते ही अपने आप दिख जाए =====
+  const q = query(collection(db, "orders"), where("sellerId", "==", myUid));
+  onSnapshot(q, () => {
+    refresh();
+  });
 });
