@@ -1466,3 +1466,17 @@ body {
   border-radius: 20px;
   margin-left: 6px;
 }
+.sort-row {
+  padding: 0 16px 12px;
+}
+
+.sort-row select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1B2A4A;
+  font-weight: 600;
+}
