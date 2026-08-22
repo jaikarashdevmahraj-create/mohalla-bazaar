@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>मेरी पसंद — मोहल्ला बाज़ार</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="header-links">
+        <a href="index.html" class="about-link">🏠 होमपेज</a>
+      </div>
+    </div>
+    <div class="stripe">
+      <span style="background:#E8A33D"></span>
+      <span style="background:#B33A3A"></span>
+      <span style="background:#3B6E5E"></span>
+      <span style="background:#E8A33D"></span>
+      <span style="background:#3B6E5E"></span>
+    </div>
+  </header>
+
+  <div class="seller-page">
+    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="pageContent" style="display:none;">
+      <h1>❤️ मेरी पसंद</h1>
+      <main class="grid" id="wishlistGrid" style="padding:0; margin-top:16px;"></main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="detailOverlay">
+    <div class="modal" id="detailModal"></div>
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="wishlist.js"></script>
+</body>
+</html>
