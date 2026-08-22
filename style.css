@@ -1328,3 +1328,37 @@ body {
   color: rgba(26,26,26,0.5);
   margin-top: 4px;
 }
+.rating-badge {
+  display: inline-block;
+  background: #FFF6E5;
+  color: #B8860B;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin: 8px 14px 0;
+}
+
+.rating-none {
+  background: #F5EFDF;
+  color: rgba(26,26,26,0.4);
+  font-weight: 500;
+}
+
+.star-picker {
+  display: flex;
+  gap: 6px;
+  font-size: 30px;
+  margin-top: 6px;
+}
+
+.star-picker span {
+  cursor: pointer;
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+
+.star-picker span.star-selected {
+  opacity: 1;
+  filter: grayscale(0);
+}
