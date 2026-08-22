@@ -78,11 +78,12 @@
             <option value="handmade">🧶 हस्तशिल्प</option>
           </select>
 
-          <label>सामान की फोटो</label>
+          <label>सामान की फोटो (ज़्यादा से ज़्यादा 3)</label>
           <div class="upload-row">
-            <input type="file" accept="image/*" id="pImgFile" class="file-input">
+            <input type="file" accept="image/*" id="pImgFile" class="file-input" multiple>
             <label for="pImgFile" class="upload-btn">🖼️ गैलरी से फोटो चुनें</label>
           </div>
+          <div class="multi-img-preview" id="multiImgPreview"></div>
           <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none;">
             <img id="pImgPreview" alt="preview">
             <button type="button" id="removeImgBtn" class="remove-img-btn">✕ हटाएँ</button>
