@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc } = window.firebaseTools;
+const { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc, onSnapshot } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 let allOrders = [];
@@ -177,7 +177,33 @@ onAuthStateChanged(auth, async (user) => {
     myName = user.email;
   }
 
-  allOrders = await fetchOrders(user.uid);
   reviewedOrderIds = await fetchMyReviews(user.uid);
-  renderOrdersList();
+
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  // ===== रीयल-टाइम: विक्रेता Accept/Cancel करते ही तुरंत दिखे =====
+  const q = query(collection(db, "orders"), where("buyerId", "==", user.uid));
+  let firstLoad = true;
+  onSnapshot(q, (snap) => {
+    const newOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    newOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    if (!firstLoad) {
+      newOrders.forEach((newOrder) => {
+        const old = allOrders.find((o) => o.id === newOrder.id);
+        if (old && old.status !== newOrder.status && newOrder.status !== "pending") {
+          const statusText = newOrder.status === "accepted" ? "स्वीकार कर लिया गया ✅" : "रद्द कर दिया गया ❌";
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("मोहल्ला बाज़ार", { body: `आपका ऑर्डर "${newOrder.productName}" ${statusText}` });
+          }
+        }
+      });
+    }
+
+    allOrders = newOrders;
+    renderOrdersList();
+    firstLoad = false;
+  });
 });
