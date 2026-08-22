@@ -26,6 +26,8 @@ let listings = [];
 let currentUser = null;
 let orderTargetItem = null;
 let myWishlistIds = new Set();
+let myLat = null;
+let myLng = null;
 
 function renderWelcomeBanner() {
   const box = document.getElementById("welcomeBanner");
@@ -58,7 +60,37 @@ function renderSkeleton() {
   }
   grid.innerHTML = html;
 }
+function getMyLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        myLat = pos.coords.latitude;
+        myLng = pos.coords.longitude;
+        resolve();
+      },
+      () => resolve(),
+      { timeout: 5000 }
+    );
+  });
+}
 
+function calcDistanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function formatDistance(km) {
+  if (km < 1) return `${Math.round(km * 1000)} मीटर`;
+  return `${km.toFixed(1)} किमी`;
+}
 async function loadListings() {
   const productsSnap = await getDocs(collection(db, "products"));
   const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -100,7 +132,9 @@ async function loadListings() {
       isPremiumSeller: seller ? !!seller.isPremium : false,
       ratingAvg: seller && seller._ratingAvg ? seller._ratingAvg : null,
       ratingCount: seller && seller._ratingCount ? seller._ratingCount : 0,
-      dist: "आपके आसपास",
+      dist: (myLat && seller && seller.lat)
+        ? formatDistance(calcDistanceKm(myLat, myLng, seller.lat, seller.lng))
+        : "आपके आसपास",
       img: (p.images && p.images[0]) || p.img || null,
       images: p.images && p.images.length ? p.images : (p.img ? [p.img] : []),
       stock: p.stock,
@@ -445,6 +479,7 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
 async function init() {
   renderWelcomeBanner();
   renderSkeleton();
+  await getMyLocation();
   myWishlistIds = await fetchWishlist();
   await loadListings();
   renderCategories();
