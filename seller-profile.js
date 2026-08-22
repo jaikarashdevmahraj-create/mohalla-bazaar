@@ -1,12 +1,22 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { doc, setDoc, getDoc, deleteDoc } = window.firebaseTools;
+const { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 let bannerImg = null;
 let logoImg = null;
 let currentProfile = null;
 let myUid = null;
+let myRatingInfo = { avg: 0, count: 0 };
+
+async function fetchRatingInfo(sellerId) {
+  const q = query(collection(db, "reviews"), where("sellerId", "==", sellerId));
+  const snap = await getDocs(q);
+  const reviews = snap.docs.map((d) => d.data());
+  if (reviews.length === 0) return { avg: 0, count: 0 };
+  const total = reviews.reduce((s, r) => s + r.rating, 0);
+  return { avg: (total / reviews.length).toFixed(1), count: reviews.length };
+}
 
 function isPremium() {
   return currentProfile ? !!currentProfile.isPremium : false;
@@ -96,7 +106,10 @@ function renderStorefront() {
         <div class="storefront-area">📍 ${addressLine} — ${p.pincode}</div>
       </div>
     </div>
-    <div class="shop-id-badge">🆔 शॉप आईडी: <b>${p.shopId}</b></div>
+   <div class="shop-id-badge">🆔 शॉप आईडी: <b>${p.shopId}</b></div>
+    ${myRatingInfo.count > 0
+      ? `<div class="rating-badge">⭐ ${myRatingInfo.avg} (${myRatingInfo.count} रिव्यू)</div>`
+      : `<div class="rating-badge rating-none">अभी कोई रिव्यू नहीं</div>`}
     ${p.description ? `<p class="storefront-desc">${p.description}</p>` : ""}
     <div class="storefront-address-box"><span>🏠 पूरा पता:</span> ${p.fullAddress}</div>
     <div class="storefront-stats">
@@ -229,6 +242,7 @@ window.togglePremiumDemo = togglePremiumDemo;
 async function loadPage() {
   document.getElementById("storefrontPreview").innerHTML = '<p class="empty-note">लोड हो रहा है...</p>';
   currentProfile = await fetchProfile();
+  myRatingInfo = await fetchRatingInfo(myUid);
   loadFormFromProfile();
   renderStorefront();
   renderDeleteButton();
