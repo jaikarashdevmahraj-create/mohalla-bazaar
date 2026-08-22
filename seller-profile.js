@@ -7,6 +7,8 @@ let bannerImg = null;
 let logoImg = null;
 let currentProfile = null;
 let myUid = null;
+let capturedLat = null;
+let capturedLng = null;
 let myRatingInfo = { avg: 0, count: 0 };
 
 async function fetchRatingInfo(sellerId) {
@@ -124,6 +126,11 @@ function renderStorefront() {
 function loadFormFromProfile() {
   const p = currentProfile;
   if (!p) return;
+  if (p.lat && p.lng) {
+    capturedLat = p.lat;
+    capturedLng = p.lng;
+    document.getElementById("locationStatus").textContent = "✅ लोकेशन पहले से सेव है";
+  }
   document.getElementById("shopName").value = p.shopName || "";
   document.getElementById("ownerName").value = p.ownerName || "";
   document.getElementById("phone").value = p.phone || "";
@@ -186,6 +193,8 @@ async function handleProfileSubmit(e) {
     banner: bannerImg,
     logo: logoImg,
     shopId: (existing && existing.shopId) ? existing.shopId : generateShopId(),
+    lat: capturedLat,
+    lng: capturedLng,
     isPremium: existing ? !!existing.isPremium : false,
     joinedLabel: existing
       ? existing.joinedLabel
@@ -259,6 +268,25 @@ document.getElementById("cancelEditProfile").addEventListener("click", () => {
 });
 document.getElementById("deleteAccountBtn").addEventListener("click", deleteSellerAccount);
 
+document.getElementById("captureLocationBtn").addEventListener("click", () => {
+  const status = document.getElementById("locationStatus");
+  if (!navigator.geolocation) {
+    status.textContent = "❌ यह ब्राउज़र लोकेशन सपोर्ट नहीं करता।";
+    return;
+  }
+  status.textContent = "📍 लोकेशन ढूँढी जा रही है...";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      capturedLat = pos.coords.latitude;
+      capturedLng = pos.coords.longitude;
+      status.textContent = "✅ लोकेशन कैप्चर हो गई! अब नीचे 'प्रोफाइल सेव करें' दबाएँ।";
+    },
+    (err) => {
+      console.error(err);
+      status.textContent = "❌ लोकेशन नहीं मिल पाई। कृपया लोकेशन की इजाज़त दें और दोबारा कोशिश करें।";
+    }
+  );
+});
 // ===== लॉगिन चेक — बिना लॉगिन कोई भी यह पेज नहीं देख सकता =====
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
