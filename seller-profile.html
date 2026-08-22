@@ -92,6 +92,12 @@
           <label>पिन कोड (Area Code)</label>
           <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
 
+          <label>दुकान की सटीक लोकेशन (GPS)</label>
+          <button type="button" id="captureLocationBtn" class="upload-btn" style="width:100%; box-sizing:border-box;">
+            📍 अभी अपनी लोकेशन कैप्चर करें
+          </button>
+          <p id="locationStatus" class="premium-hint"></p>
+
           <label>पूरा घर/दुकान का पता</label>
           <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
 
