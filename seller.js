@@ -1,9 +1,10 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc, orderBy } = window.firebaseTools;
+const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const FREE_LIMIT = 5;
+const MAX_IMAGES = 3;
 const catLabels = {
   sabzi: "🥕 सब्ज़ी-राशन",
   kapde: "👕 कपड़े",
@@ -13,17 +14,11 @@ const catLabels = {
 };
 
 let editingId = null;
-let currentProductImg = null;
+let currentProductImages = [];
 let myProductsCache = [];
 let mySellerProfile = null;
 let myUid = null;
 let myAcceptedOrders = [];
-
-async function fetchAcceptedOrders() {
-  const q = query(collection(db, "orders"), where("sellerId", "==", myUid), where("status", "==", "accepted"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
 
 function isPremium() {
   return mySellerProfile ? !!mySellerProfile.isPremium : false;
@@ -37,7 +32,13 @@ async function setPremium(value) {
   await setDoc(doc(db, "sellers", myUid), mySellerProfile);
 }
 
-function resizeImage(file, maxSize, callback) {
+async function fetchAcceptedOrders() {
+  const q = query(collection(db, "orders"), where("sellerId", "==", myUid), where("status", "==", "accepted"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+function resizeImage(file, maxSize, quality, callback) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const img = new Image();
@@ -49,25 +50,43 @@ function resizeImage(file, maxSize, callback) {
       canvas.width = w;
       canvas.height = h;
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL("image/jpeg", 0.65));
+      callback(canvas.toDataURL("image/jpeg", quality));
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function showPreview(src) {
-  document.getElementById("pImgPreview").src = src;
-  document.getElementById("imgPreviewWrap").style.display = "block";
+function renderMultiImgPreview() {
+  const wrap = document.getElementById("multiImgPreview");
+  wrap.innerHTML = currentProductImages.map((img, idx) => `
+    <div class="mini-img-box">
+      <img src="${img}" alt="फोटो ${idx + 1}">
+      <button type="button" onclick="removeProductImage(${idx})" class="remove-img-btn">✕</button>
+    </div>
+  `).join("");
 }
 
+window.removeProductImage = function (idx) {
+  currentProductImages.splice(idx, 1);
+  renderMultiImgPreview();
+};
+
 function handleImageSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  resizeImage(file, 500, function (dataUrl) {
-    currentProductImg = dataUrl;
-    showPreview(dataUrl);
+  const files = Array.from(e.target.files);
+  const remaining = MAX_IMAGES - currentProductImages.length;
+  if (remaining <= 0) {
+    alert(`अधिकतम ${MAX_IMAGES} फोटो ही डाल सकते हैं।`);
+    return;
+  }
+  const toProcess = files.slice(0, remaining);
+  toProcess.forEach((file) => {
+    resizeImage(file, 500, 0.6, (dataUrl) => {
+      currentProductImages.push(dataUrl);
+      renderMultiImgPreview();
+    });
   });
+  e.target.value = "";
 }
 
 async function fetchMyProducts() {
@@ -139,7 +158,6 @@ function renderAdvanced(products) {
   const addedThisWeek = products.filter((p) => (p.createdAt || 0) > weekAgo).length;
   const featuredCount = products.filter((p) => p.featured).length;
 
-  // ===== असली बिक्री के आंकड़े (सिर्फ़ Accept किए गए ऑर्डर से) =====
   const totalSales = myAcceptedOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
   const salesThisWeek = myAcceptedOrders
     .filter((o) => (o.createdAt || 0) > weekAgo)
@@ -197,9 +215,10 @@ function renderMyProducts(products) {
     let stockClass = "", stockText = `${p.stock} ${p.unit} उपलब्ध`;
     if (p.stock === 0) { stockClass = "danger-text"; stockText = "स्टॉक खत्म ❌"; }
     else if (p.stock < 5) { stockClass = "warn-text"; stockText = `सिर्फ़ ${p.stock} ${p.unit} बचा`; }
+    const thumbImg = (p.images && p.images[0]) || p.img || "https://placehold.co/80x80/EDE4D3/1B2A4A?text=📦";
     return `
       <div class="product-row ${p.featured ? "featured-row" : ""}">
-        <img src="${p.img || "https://placehold.co/80x80/EDE4D3/1B2A4A?text=📦"}" alt="${p.name}">
+        <img src="${thumbImg}" alt="${p.name}">
         <div class="product-row-info">
           <div class="product-row-title">${p.name} ${p.featured ? '<span class="featured-tag">⭐ फीचर्ड</span>' : ""}</div>
           <div class="product-row-price">₹${p.price} / ${p.unit}</div>
@@ -226,14 +245,13 @@ window.startEdit = function (id) {
   const p = myProductsCache.find((x) => x.id === id);
   if (!p) return;
   editingId = id;
-  currentProductImg = p.img || null;
+  currentProductImages = p.images ? [...p.images] : (p.img ? [p.img] : []);
+  renderMultiImgPreview();
   document.getElementById("pName").value = p.name;
   document.getElementById("pPrice").value = p.price;
   document.getElementById("pUnit").value = p.unit;
   document.getElementById("pStock").value = p.stock;
   document.getElementById("pCat").value = p.cat;
-  if (p.img) showPreview(p.img);
-  else document.getElementById("imgPreviewWrap").style.display = "none";
   document.getElementById("formTitle").textContent = "सामान एडिट करें";
   document.getElementById("submitBtn").textContent = "बदलाव सेव करें";
   document.getElementById("cancelEdit").style.display = "block";
@@ -248,10 +266,10 @@ window.deleteProduct = async function (id) {
 
 function resetForm() {
   editingId = null;
-  currentProductImg = null;
+  currentProductImages = [];
+  renderMultiImgPreview();
   document.getElementById("sellerForm").reset();
   document.getElementById("pImgFile").value = "";
-  document.getElementById("imgPreviewWrap").style.display = "none";
   document.getElementById("formTitle").textContent = "नया सामान जोड़ें";
   document.getElementById("submitBtn").textContent = "सामान जोड़ें";
   document.getElementById("cancelEdit").style.display = "none";
@@ -275,7 +293,8 @@ async function handleSubmit(e) {
     unit: document.getElementById("pUnit").value,
     stock: Number(document.getElementById("pStock").value),
     cat: document.getElementById("pCat").value,
-    img: currentProductImg,
+    images: currentProductImages,
+    img: currentProductImages[0] || null,
   };
 
   try {
@@ -329,18 +348,12 @@ async function renderAll() {
 document.getElementById("sellerForm").addEventListener("submit", handleSubmit);
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
 document.getElementById("pImgFile").addEventListener("change", handleImageSelect);
-document.getElementById("removeImgBtn").addEventListener("click", () => {
-  currentProductImg = null;
-  document.getElementById("pImgFile").value = "";
-  document.getElementById("imgPreviewWrap").style.display = "none";
-});
 document.getElementById("logoutLink").addEventListener("click", async (e) => {
   e.preventDefault();
   await signOut(auth);
   window.location.href = "index.html";
 });
 
-// ===== लॉगिन चेक — बिना लॉगिन कोई भी यह पेज नहीं देख सकता =====
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html?next=seller.html";
