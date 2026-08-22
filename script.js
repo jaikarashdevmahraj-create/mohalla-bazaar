@@ -21,6 +21,7 @@ const demoListings = [
 
 let activeCategory = "sab";
 let searchText = "";
+let sortMode = "relevant";
 let listings = [];
 let currentUser = null;
 let orderTargetItem = null;
@@ -104,6 +105,7 @@ async function loadListings() {
       stock: p.stock,
       unit: p.unit,
       featured: p.featured,
+      createdAt: p.createdAt || 0,
       isMine: currentUser && p.sellerId === currentUser.uid,
       isDemo: false,
     };
@@ -133,11 +135,22 @@ function renderCategories() {
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   grid.innerHTML = "";
-  const filtered = listings.filter((item) => {
+  let filtered = listings.filter((item) => {
     const matchCat = activeCategory === "sab" || item.cat === activeCategory;
     const matchSearch = item.title.toLowerCase().includes(searchText.toLowerCase());
     return matchCat && matchSearch;
   });
+
+  if (sortMode === "price_low") {
+    filtered = [...filtered].sort((a, b) => a.price - b.price);
+  } else if (sortMode === "price_high") {
+    filtered = [...filtered].sort((a, b) => b.price - a.price);
+  } else if (sortMode === "newest") {
+    filtered = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } else {
+    // "प्रासंगिक" — फीचर्ड हमेशा ऊपर रहे
+    filtered = [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  }
 
   if (filtered.length === 0) {
     grid.innerHTML = `
@@ -383,6 +396,10 @@ document.getElementById("zoomCloseBtn").addEventListener("click", (e) => {
   document.getElementById("zoomOverlay").classList.remove("show");
 });
 document.getElementById("searchInput").addEventListener("input", handleSearch);
+document.getElementById("sortSelect").addEventListener("change", (e) => {
+  sortMode = e.target.value;
+  renderProducts();
+});
 
 async function init() {
   renderWelcomeBanner();
