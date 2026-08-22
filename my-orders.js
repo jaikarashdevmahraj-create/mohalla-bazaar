@@ -1,10 +1,15 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, query, where, getDocs, doc, setDoc, getDoc } = window.firebaseTools;
+const { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 let allOrders = [];
 let activeFilter = "all";
+let myUid = null;
+let myName = "";
+let reviewedOrderIds = new Set();
+let reviewTargetOrder = null;
+let selectedRating = 0;
 
 function statusLabel(status) {
   if (status === "pending") return { text: "⏳ विक्रेता के जवाब का इंतज़ार", cls: "warn-text" };
@@ -21,46 +26,12 @@ async function fetchOrders(uid) {
   return orders;
 }
 
-let myUid = null;
-
-async function fetchBuyerProfile() {
-  const snap = await getDoc(doc(db, "buyers", myUid));
-  return snap.exists() ? snap.data() : null;
+async function fetchMyReviews(uid) {
+  const q = query(collection(db, "reviews"), where("buyerId", "==", uid));
+  const snap = await getDocs(q);
+  return new Set(snap.docs.map((d) => d.data().orderId));
 }
 
-async function saveBuyerProfile(profile) {
-  await setDoc(doc(db, "buyers", myUid), profile);
-}
-
-function toggleBuyerProfileForm() {
-  const box = document.getElementById("buyerProfileBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
-}
-
-async function handleBuyerProfileSubmit(e) {
-  e.preventDefault();
-  const btn = document.getElementById("buyerProfileSubmitBtn");
-  btn.disabled = true;
-  btn.textContent = "सेव हो रहा है...";
-
-  const profile = {
-    name: document.getElementById("buyerName").value,
-    phone: document.getElementById("buyerPhone").value,
-    address: document.getElementById("buyerAddress").value,
-  };
-
-  try {
-    await saveBuyerProfile(profile);
-    alert("✅ आपकी जानकारी सेव हो गई। अब ऑर्डर करते वक्त यह अपने आप भर जाएगी।");
-    document.getElementById("buyerProfileBox").style.display = "none";
-  } catch (err) {
-    console.error(err);
-    alert("सेव करने में दिक्कत आई।");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "सेव करें";
-  }
-}
 function renderOrdersList() {
   const wrap = document.getElementById("ordersList");
   const filtered = activeFilter === "all" ? allOrders : allOrders.filter((o) => o.status === activeFilter);
@@ -73,6 +44,12 @@ function renderOrdersList() {
   wrap.innerHTML = filtered.map((o) => {
     const st = statusLabel(o.status);
     const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString("hi-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const alreadyReviewed = reviewedOrderIds.has(o.id);
+    const reviewBtnHtml = o.status === "accepted"
+      ? (alreadyReviewed
+          ? `<p class="premium-hint" style="margin-top:8px;">✅ आपने इसे रेट कर दिया है</p>`
+          : `<button onclick="openReview('${o.id}')" class="edit-toggle-btn" style="margin-top:8px;">⭐ रेटिंग दें</button>`)
+      : "";
 
     return `
       <div class="section-box order-card">
@@ -89,9 +66,70 @@ function renderOrdersList() {
           <div>🏠 डिलीवरी पता: ${o.deliveryAddress}</div>
           <div class="order-date">🕒 ${date}</div>
         </div>
+        ${reviewBtnHtml}
       </div>
     `;
   }).join("");
+}
+
+window.openReview = function (orderId) {
+  const order = allOrders.find((o) => o.id === orderId);
+  if (!order) return;
+  reviewTargetOrder = order;
+  selectedRating = 0;
+  document.getElementById("reviewProductName").textContent = `${order.productName} — ${order.sellerName}`;
+  updateStarDisplay();
+  document.getElementById("reviewComment").value = "";
+  document.getElementById("reviewOverlay").classList.add("show");
+};
+
+function closeReviewForm() {
+  document.getElementById("reviewOverlay").classList.remove("show");
+  reviewTargetOrder = null;
+}
+
+function updateStarDisplay() {
+  document.querySelectorAll("#starPicker span").forEach((star) => {
+    const val = Number(star.dataset.star);
+    star.classList.toggle("star-selected", val <= selectedRating);
+  });
+  document.getElementById("reviewRating").value = selectedRating;
+}
+
+async function handleReviewSubmit(e) {
+  e.preventDefault();
+  if (!reviewTargetOrder) return;
+  if (selectedRating === 0) {
+    alert("कृपया कम से कम 1 स्टार दें।");
+    return;
+  }
+
+  const btn = document.getElementById("reviewSubmitBtn");
+  btn.disabled = true;
+  btn.textContent = "भेजा जा रहा है...";
+
+  try {
+    await addDoc(collection(db, "reviews"), {
+      orderId: reviewTargetOrder.id,
+      sellerId: reviewTargetOrder.sellerId,
+      buyerId: myUid,
+      buyerName: myName,
+      productName: reviewTargetOrder.productName,
+      rating: selectedRating,
+      comment: document.getElementById("reviewComment").value,
+      createdAt: Date.now(),
+    });
+    reviewedOrderIds.add(reviewTargetOrder.id);
+    alert("✅ धन्यवाद! आपकी रेटिंग सेव हो गई।");
+    closeReviewForm();
+    renderOrdersList();
+  } catch (err) {
+    console.error(err);
+    alert("रेटिंग भेजने में दिक्कत आई।");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "रिव्यू भेजें";
+  }
 }
 
 document.getElementById("orderTabs").addEventListener("click", (e) => {
@@ -109,8 +147,16 @@ document.getElementById("logoutLink").addEventListener("click", async (e) => {
   window.location.href = "index.html";
 });
 
-document.getElementById("editProfileToggleBtn").addEventListener("click", toggleBuyerProfileForm);
-document.getElementById("buyerProfileForm").addEventListener("submit", handleBuyerProfileSubmit);
+document.getElementById("starPicker").addEventListener("click", (e) => {
+  const star = e.target.closest("span");
+  if (!star) return;
+  selectedRating = Number(star.dataset.star);
+  updateStarDisplay();
+});
+document.getElementById("cancelReview").addEventListener("click", closeReviewForm);
+document.getElementById("reviewOverlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeReviewForm(); });
+document.getElementById("reviewForm").addEventListener("submit", handleReviewSubmit);
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html?next=my-orders.html";
@@ -121,13 +167,17 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("authLoading").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
 
-  const profile = await fetchBuyerProfile();
-  if (profile) {
-    document.getElementById("buyerName").value = profile.name || "";
-    document.getElementById("buyerPhone").value = profile.phone || "";
-    document.getElementById("buyerAddress").value = profile.address || "";
+  const profileSnap = await getDoc(doc(db, "buyers", myUid));
+  if (profileSnap.exists()) {
+    myName = profileSnap.data().name || user.email;
+    document.getElementById("buyerName") && (document.getElementById("buyerName").value = profileSnap.data().name || "");
+    document.getElementById("buyerPhone") && (document.getElementById("buyerPhone").value = profileSnap.data().phone || "");
+    document.getElementById("buyerAddress") && (document.getElementById("buyerAddress").value = profileSnap.data().address || "");
+  } else {
+    myName = user.email;
   }
 
   allOrders = await fetchOrders(user.uid);
+  reviewedOrderIds = await fetchMyReviews(user.uid);
   renderOrdersList();
 });
