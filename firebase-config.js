@@ -22,6 +22,7 @@ import {
   orderBy,
   arrayUnion,
   arrayRemove,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyA0RSPrTASfJQLBHHr1hpH0IFe-Qlas_GA",
@@ -48,7 +49,7 @@ function getMySellerId() {
 
 // बाकी फाइलों में इस्तेमाल करने के लिए एक्सपोर्ट करना
 window.firebaseDB = db;
-window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, arrayRemove };
+ window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, arrayRemove, onSnapshot };
 window.getMySellerId = getMySellerId;
 window.firebaseAuth = auth;
 window.authTools = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
