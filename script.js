@@ -99,7 +99,8 @@ async function loadListings() {
       ratingAvg: seller && seller._ratingAvg ? seller._ratingAvg : null,
       ratingCount: seller && seller._ratingCount ? seller._ratingCount : 0,
       dist: "आपके आसपास",
-      img: p.img || null,
+      img: (p.images && p.images[0]) || p.img || null,
+      images: p.images && p.images.length ? p.images : (p.img ? [p.img] : []),
       stock: p.stock,
       unit: p.unit,
       featured: p.featured,
@@ -168,9 +169,8 @@ function renderProducts() {
 
 function openDetail(item) {
   const modal = document.getElementById("detailModal");
-  const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
+  const gallery = item.images && item.images.length ? item.images : [item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦"];
   const logoSrc = item.sellerLogo || "https://placehold.co/80x80/1B2A4A/FFFFFF?text=🏬";
-
   const orderButtonHtml = item.isDemo
     ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह एक डेमो सामान है, इसे ऑर्डर नहीं किया जा सकता।</p>`
     : item.isMine
@@ -183,7 +183,10 @@ function openDetail(item) {
     `;
 
   modal.innerHTML = `
-    <img src="${imgSrc}" alt="${item.title}">
+    <div class="gallery-main-wrap">
+      <img src="${gallery[0]}" alt="${item.title}" id="galleryMainImg" data-idx="0">
+      ${gallery.length > 1 ? `<div class="gallery-dots">${gallery.map((_, i) => `<span class="gallery-dot ${i === 0 ? "active" : ""}" data-idx="${i}"></span>`).join("")}</div>` : ""}
+    </div>
     <h2>${item.title}</h2>
     <div class="card-price" style="font-size:22px;">₹${item.price}</div>
     <div style="font-size:12px; color:#999; margin-top:4px;">📍 ${item.dist}</div>
@@ -212,6 +215,25 @@ function openDetail(item) {
 
   const cartBtn = document.getElementById("addToCartBtn");
   if (cartBtn) cartBtn.addEventListener("click", () => addToCart(item));
+
+  const mainImg = document.getElementById("galleryMainImg");
+  mainImg.addEventListener("click", () => openZoom(gallery, Number(mainImg.dataset.idx)));
+  document.querySelectorAll(".gallery-dot").forEach((dot) => {
+    dot.addEventListener("click", () => {
+      const idx = Number(dot.dataset.idx);
+      mainImg.src = gallery[idx];
+      mainImg.dataset.idx = idx;
+      document.querySelectorAll(".gallery-dot").forEach((d) => d.classList.remove("active"));
+      dot.classList.add("active");
+    });
+  });
+}
+
+function openZoom(gallery, startIdx) {
+  const overlay = document.getElementById("zoomOverlay");
+  const img = document.getElementById("zoomImg");
+  img.src = gallery[startIdx];
+  overlay.classList.add("show");
 }
 
 function closeDetail() {
@@ -352,6 +374,13 @@ document.getElementById("menuBtn").addEventListener("click", openSideMenu);
 document.getElementById("closeMenuBtn").addEventListener("click", closeSideMenu);
 document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
   if (e.target === e.currentTarget) closeSideMenu();
+});
+document.getElementById("zoomOverlay").addEventListener("click", () => {
+  document.getElementById("zoomOverlay").classList.remove("show");
+});
+document.getElementById("zoomCloseBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  document.getElementById("zoomOverlay").classList.remove("show");
 });
 document.getElementById("searchInput").addEventListener("input", handleSearch);
 
