@@ -60,6 +60,31 @@
 
       <div id="ordersList"></div>
 
+      <!-- ===== रिव्यू लिखने वाला फॉर्म ===== -->
+      <div class="modal-overlay" id="reviewOverlay">
+        <div class="modal">
+          <h2>अपना अनुभव बताएं</h2>
+          <p class="order-product-name" id="reviewProductName"></p>
+          <form id="reviewForm">
+            <label>रेटिंग दें</label>
+            <div class="star-picker" id="starPicker">
+              <span data-star="1">⭐</span>
+              <span data-star="2">⭐</span>
+              <span data-star="3">⭐</span>
+              <span data-star="4">⭐</span>
+              <span data-star="5">⭐</span>
+            </div>
+            <input type="hidden" id="reviewRating" value="0">
+
+            <label>अपना अनुभव लिखें (वैकल्पिक)</label>
+            <input type="text" id="reviewComment" placeholder="जैसे: सामान अच्छा और समय पर मिला">
+
+            <button type="submit" class="btn-primary" id="reviewSubmitBtn">रिव्यू भेजें</button>
+            <button type="button" class="btn-secondary" id="cancelReview">रद्द करें</button>
+          </form>
+        </div>
+      </div>
+
     </div>
 
   </div>
