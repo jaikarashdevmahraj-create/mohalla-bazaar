@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc } = window.firebaseTools;
+const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, setDoc, getDoc, onSnapshot } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const FREE_LIMIT = 5;
@@ -354,6 +354,20 @@ document.getElementById("logoutLink").addEventListener("click", async (e) => {
   window.location.href = "index.html";
 });
 
+function listenForPendingOrders() {
+  const q = query(collection(db, "orders"), where("sellerId", "==", myUid), where("status", "==", "pending"));
+  onSnapshot(q, (snap) => {
+    const badge = document.getElementById("pendingBadge");
+    if (!badge) return;
+    const count = snap.size;
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = "inline-block";
+    } else {
+      badge.style.display = "none";
+    }
+  });
+}
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html?next=seller.html";
@@ -364,4 +378,5 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("authLoading").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
   await renderAll();
+  listenForPendingOrders();
 });
