@@ -60,6 +60,7 @@ function renderSkeleton() {
   }
   grid.innerHTML = html;
 }
+
 function getMyLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(); return; }
@@ -91,6 +92,7 @@ function formatDistance(km) {
   if (km < 1) return `${Math.round(km * 1000)} मीटर`;
   return `${km.toFixed(1)} किमी`;
 }
+
 async function loadListings() {
   const productsSnap = await getDocs(collection(db, "products"));
   const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -170,9 +172,19 @@ function renderCategories() {
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   grid.innerHTML = "";
+
+  const cleanSearch = searchText.trim().toLowerCase();
+
   let filtered = listings.filter((item) => {
     const matchCat = activeCategory === "sab" || item.cat === activeCategory;
-    const matchSearch = item.title.toLowerCase().includes(searchText.toLowerCase());
+    if (!cleanSearch) return matchCat;
+
+    const catLabel = (categories.find((c) => c.id === item.cat) || {}).label || "";
+    const searchableText = [item.title, item.sellerName, catLabel, item.sellerArea]
+      .join(" ")
+      .toLowerCase();
+
+    const matchSearch = searchableText.includes(cleanSearch);
     return matchCat && matchSearch;
   });
 
@@ -183,7 +195,6 @@ function renderProducts() {
   } else if (sortMode === "newest") {
     filtered = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   } else {
-    // "प्रासंगिक" — फीचर्ड हमेशा ऊपर रहे
     filtered = [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
   }
 
@@ -201,8 +212,7 @@ function renderProducts() {
     const card = document.createElement("div");
     card.className = "card";
     const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
-    card.innerHTML = `
-      const isWishlisted = myWishlistIds.has(item.id);
+    const isWishlisted = myWishlistIds.has(item.id);
     card.innerHTML = `
       <img src="${imgSrc}" alt="${item.title}" loading="lazy">
       <span class="dist-badge">📍 ${item.dist}</span>
@@ -326,6 +336,7 @@ async function toggleWishlist(item) {
     alert("दिक्कत आई, दोबारा कोशिश करें।");
   }
 }
+
 async function addToCart(item) {
   if (!currentUser) {
     alert("कार्ट में डालने के लिए पहले लॉगिन करना ज़रूरी है।");
@@ -416,6 +427,16 @@ async function handleOrderSubmit(e) {
 
 function handleSearch(e) {
   searchText = e.target.value;
+  const clean = searchText.trim().toLowerCase();
+
+  const matchedCat = categories.find(
+    (c) => c.id !== "sab" && c.label.toLowerCase() === clean
+  );
+  if (matchedCat) {
+    activeCategory = matchedCat.id;
+    renderCategories();
+  }
+
   renderProducts();
 }
 
