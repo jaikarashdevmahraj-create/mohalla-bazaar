@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion } = window.firebaseTools;
+const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion, query, where } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const categories = [
@@ -67,7 +67,17 @@ async function loadListings() {
     sellerIds.map(async (sid) => {
       try {
         const s = await getDoc(doc(db, "sellers", sid));
-        if (s.exists()) sellerMap[sid] = s.data();
+        if (s.exists()) {
+          const data = s.data();
+          const rq = query(collection(db, "reviews"), where("sellerId", "==", sid));
+          const rSnap = await getDocs(rq);
+          const reviews = rSnap.docs.map((d) => d.data());
+          if (reviews.length > 0) {
+            data._ratingAvg = (reviews.reduce((s2, r) => s2 + r.rating, 0) / reviews.length).toFixed(1);
+            data._ratingCount = reviews.length;
+          }
+          sellerMap[sid] = data;
+        }
       } catch (e) {}
     })
   );
@@ -86,6 +96,8 @@ async function loadListings() {
       sellerPhone: seller ? seller.phone : "",
       sellerLogo: seller ? seller.logo : null,
       isPremiumSeller: seller ? !!seller.isPremium : false,
+      ratingAvg: seller && seller._ratingAvg ? seller._ratingAvg : null,
+      ratingCount: seller && seller._ratingCount ? seller._ratingCount : 0,
       dist: "आपके आसपास",
       img: p.img || null,
       stock: p.stock,
@@ -183,6 +195,7 @@ function openDetail(item) {
       <img class="seller-avatar-img" src="${logoSrc}" alt="shop logo">
       <div class="seller-info">
         <div class="seller-name">${item.sellerName} ${item.isPremiumSeller ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
+        ${item.ratingCount > 0 ? `<div class="rating-badge" style="margin-top:4px;">⭐ ${item.ratingAvg} (${item.ratingCount})</div>` : ""}
         <div class="seller-area">📍 ${item.sellerArea || "इलाका उपलब्ध नहीं"}</div>
       </div>
     </div>
