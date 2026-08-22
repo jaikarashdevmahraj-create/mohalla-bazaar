@@ -1452,3 +1452,17 @@ body {
   border-radius: 50%;
   font-size: 18px;
 }
+.notify-link {
+  position: relative;
+}
+
+.notify-badge {
+  display: inline-block;
+  background: #C0392B;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-left: 6px;
+}
