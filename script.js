@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion, query, where } = window.firebaseTools;
+const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion, arrayRemove, query, where } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const categories = [
@@ -25,6 +25,7 @@ let sortMode = "relevant";
 let listings = [];
 let currentUser = null;
 let orderTargetItem = null;
+let myWishlistIds = new Set();
 
 function renderWelcomeBanner() {
   const box = document.getElementById("welcomeBanner");
@@ -167,15 +168,26 @@ function renderProducts() {
     card.className = "card";
     const imgSrc = item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦";
     card.innerHTML = `
+      const isWishlisted = myWishlistIds.has(item.id);
+    card.innerHTML = `
       <img src="${imgSrc}" alt="${item.title}" loading="lazy">
       <span class="dist-badge">📍 ${item.dist}</span>
       ${item.featured ? '<span class="card-featured-tag">⭐ फीचर्ड</span>' : ""}
+      ${!item.isDemo && !item.isMine ? `<button class="wishlist-heart ${isWishlisted ? "active" : ""}" data-id="${item.id}">${isWishlisted ? "❤️" : "🤍"}</button>` : ""}
       <div class="card-body">
         <div class="card-title">${item.title}</div>
         <div class="card-price">₹${item.price}</div>
         <div class="card-seller">🏬 ${item.sellerName} ${item.sellerArea ? "· " + item.sellerArea : ""}</div>
       </div>`;
     card.addEventListener("click", () => openDetail(item));
+
+    const heartBtn = card.querySelector(".wishlist-heart");
+    if (heartBtn) {
+      heartBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleWishlist(item);
+      });
+    }
     grid.appendChild(card);
   });
 }
@@ -253,6 +265,33 @@ function closeDetail() {
   document.getElementById("detailOverlay").classList.remove("show");
 }
 
+async function fetchWishlist() {
+  if (!currentUser) return new Set();
+  const snap = await getDoc(doc(db, "wishlists", currentUser.uid));
+  return snap.exists() && snap.data().productIds ? new Set(snap.data().productIds) : new Set();
+}
+
+async function toggleWishlist(item) {
+  if (!currentUser) {
+    alert("पसंद में डालने के लिए पहले लॉगिन करना ज़रूरी है।");
+    window.location.href = "login.html?next=index.html";
+    return;
+  }
+  const isWishlisted = myWishlistIds.has(item.id);
+  try {
+    if (isWishlisted) {
+      await setDoc(doc(db, "wishlists", currentUser.uid), { productIds: arrayRemove(item.id) }, { merge: true });
+      myWishlistIds.delete(item.id);
+    } else {
+      await setDoc(doc(db, "wishlists", currentUser.uid), { productIds: arrayUnion(item.id) }, { merge: true });
+      myWishlistIds.add(item.id);
+    }
+    renderProducts();
+  } catch (err) {
+    console.error(err);
+    alert("दिक्कत आई, दोबारा कोशिश करें।");
+  }
+}
 async function addToCart(item) {
   if (!currentUser) {
     alert("कार्ट में डालने के लिए पहले लॉगिन करना ज़रूरी है।");
@@ -362,6 +401,7 @@ function updateAuthLink() {
       window.location.reload();
     };
     ordersMenuLink.href = "my-orders.html";
+    document.getElementById("wishlistMenuLink").href = "wishlist.html";
   } else {
     link.textContent = "लॉगिन";
     link.href = "login.html";
@@ -369,6 +409,7 @@ function updateAuthLink() {
     accountMenuLink.href = "login.html";
     accountMenuLink.onclick = null;
     ordersMenuLink.href = "login.html?next=my-orders.html";
+    document.getElementById("wishlistMenuLink").href = "login.html?next=wishlist.html";
   }
 }
 
@@ -404,6 +445,7 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
 async function init() {
   renderWelcomeBanner();
   renderSkeleton();
+  myWishlistIds = await fetchWishlist();
   await loadListings();
   renderCategories();
   renderProducts();
