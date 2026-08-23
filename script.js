@@ -1,15 +1,23 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, doc, getDoc, getDocs, addDoc, setDoc, arrayUnion, arrayRemove, query, where } = window.firebaseTools;
+const { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter, documentId } = window.firebaseTools;
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const categories = [
   { id: "sab", label: "सब कुछ", emoji: "🏪" },
   { id: "sabzi", label: "सब्ज़ी-राशन", emoji: "🥕" },
+  { id: "khana", label: "खाना/टिफिन", emoji: "🍲" },
   { id: "kapde", label: "कपड़े", emoji: "👕" },
   { id: "ghar", label: "घरेलू सामान", emoji: "🛋️" },
   { id: "electronics", label: "इलेक्ट्रॉनिक्स", emoji: "🔌" },
   { id: "handmade", label: "हस्तशिल्प", emoji: "🧶" },
+  { id: "beauty", label: "सौंदर्य/देखभाल", emoji: "💄" },
+  { id: "kheti", label: "खेती/कृषि", emoji: "🚜" },
+  { id: "pashupalan", label: "पशुपालन", emoji: "🐄" },
+  { id: "books", label: "किताबें/स्टेशनरी", emoji: "📚" },
+  { id: "toys", label: "खिलौने", emoji: "🧸" },
+  { id: "tools", label: "औज़ार/हार्डवेयर", emoji: "🔧" },
+  { id: "vehicle", label: "गाड़ी/स्पेयर पार्ट्स", emoji: "🚗" },
 ];
 
 const demoListings = [
@@ -18,6 +26,9 @@ const demoListings = [
   { id: "d3", title: "कॉटन कुर्ती (M साइज़)", price: 320, cat: "kapde", sellerName: "प्रिया स्टोर्स", sellerArea: "नेहरू कॉलोनी", dist: "900 मीटर", img: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=400&q=60", isDemo: true },
   { id: "d4", title: "स्टील डिनर सेट (24 पीस)", price: 1200, cat: "ghar", sellerName: "रमेश भाई", sellerArea: "गाँधी चौक", dist: "1.4 किमी", img: "https://images.unsplash.com/photo-1584346133934-a3a9c893a5d7?w=400&q=60", isDemo: true },
 ];
+
+const PAGE_SIZE = 24;
+const CACHE_TTL_MS = 2 * 60 * 1000;
 
 let activeCategory = "sab";
 let searchText = "";
@@ -28,19 +39,39 @@ let orderTargetItem = null;
 let myWishlistIds = new Set();
 let myLat = null;
 let myLng = null;
+let lastVisibleDoc = null;
+let hasMoreProducts = true;
+let sellerCache = {};
+
+function readCache(key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.time > CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) {
+    return null;
+  }
+}
+function writeCache(key, data) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ time: Date.now(), data }));
+  } catch (e) {}
+}
 
 function renderWelcomeBanner() {
   const box = document.getElementById("welcomeBanner");
   const hour = new Date().getHours();
-  let greeting = "नमस्ते 👋";
-  if (hour < 12) greeting = "सुप्रभात ☀️";
-  else if (hour < 17) greeting = "नमस्ते 👋";
-  else greeting = "शुभ संध्या 🌆";
+  let greetingKey = "greetingDay";
+  if (hour < 12) greetingKey = "greetingMorning";
+  else if (hour < 17) greetingKey = "greetingDay";
+  else greetingKey = "greetingEvening";
 
   box.innerHTML = `
     <div class="welcome-text">
-      <div class="welcome-greeting">${greeting}</div>
-      <div class="welcome-sub">आपके आसपास के भरोसेमंद विक्रेताओं से खरीदारी करें</div>
+      <div class="welcome-greeting">${window.i18n.t(greetingKey)}</div>
+      <div class="welcome-sub">${window.i18n.t("welcomeSub")}</div>
     </div>
   `;
 }
@@ -93,64 +124,97 @@ function formatDistance(km) {
   return `${km.toFixed(1)} किमी`;
 }
 
-async function loadListings() {
-  const productsSnap = await getDocs(collection(db, "products"));
-  const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-  const sellerIds = [...new Set(products.map((p) => p.sellerId))];
-  const sellerMap = {};
+async function fetchSellersBatched(sellerIds) {
+  const idsToFetch = sellerIds.filter((id) => !sellerCache[id]);
+  const chunks = [];
+  for (let i = 0; i < idsToFetch.length; i += 10) {
+    chunks.push(idsToFetch.slice(i, i + 10));
+  }
   await Promise.all(
-    sellerIds.map(async (sid) => {
+    chunks.map(async (chunk) => {
+      if (chunk.length === 0) return;
       try {
-        const s = await getDoc(doc(db, "sellers", sid));
-        if (s.exists()) {
-          const data = s.data();
-          const rq = query(collection(db, "reviews"), where("sellerId", "==", sid));
-          const rSnap = await getDocs(rq);
-          const reviews = rSnap.docs.map((d) => d.data());
-          if (reviews.length > 0) {
-            data._ratingAvg = (reviews.reduce((s2, r) => s2 + r.rating, 0) / reviews.length).toFixed(1);
-            data._ratingCount = reviews.length;
-          }
-          sellerMap[sid] = data;
-        }
-      } catch (e) {}
+        const q = query(collection(db, "sellers"), where(documentId(), "in", chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach((d) => { sellerCache[d.id] = d.data(); });
+      } catch (e) {
+        console.error(e);
+      }
     })
   );
+  return sellerIds.map((id) => sellerCache[id]).filter(Boolean);
+}
 
-  const fromFirebase = products.map((p) => {
-    const seller = sellerMap[p.sellerId];
-    return {
-      id: p.id,
-      title: p.name + (p.unit ? ` (${p.unit})` : ""),
-      price: p.price,
-      cat: p.cat,
-      unitLabel: p.unit,
-      sellerId: p.sellerId,
-      sellerName: seller ? seller.shopName : "दुकान (प्रोफाइल अधूरी)",
-      sellerArea: seller ? [seller.village, seller.district].filter(Boolean).join(", ") : "",
-      sellerPhone: seller ? seller.phone : "",
-      sellerLogo: seller ? seller.logo : null,
-      isPremiumSeller: seller ? !!seller.isPremium : false,
-      ratingAvg: seller && seller._ratingAvg ? seller._ratingAvg : null,
-      ratingCount: seller && seller._ratingCount ? seller._ratingCount : 0,
-      dist: (myLat && seller && seller.lat)
-        ? formatDistance(calcDistanceKm(myLat, myLng, seller.lat, seller.lng))
-        : "आपके आसपास",
-      img: (p.images && p.images[0]) || p.img || null,
-      images: p.images && p.images.length ? p.images : (p.img ? [p.img] : []),
-      stock: p.stock,
-      unit: p.unit,
-      featured: p.featured,
-      createdAt: p.createdAt || 0,
-      isMine: currentUser && p.sellerId === currentUser.uid,
-      isDemo: false,
-    };
+function mapProductToListing(p, id) {
+  const seller = sellerCache[p.sellerId];
+  return {
+    id,
+    title: p.name + (p.unit ? ` (${p.unit})` : ""),
+    price: p.price,
+    cat: p.cat,
+    unitLabel: p.unit,
+    sellerId: p.sellerId,
+    sellerName: seller ? seller.shopName : "दुकान (प्रोफाइल अधूरी)",
+    sellerArea: seller ? [seller.village, seller.district].filter(Boolean).join(", ") : "",
+    sellerPhone: seller ? seller.phone : "",
+    sellerLogo: seller ? seller.logo : null,
+    sellerUpi: seller ? seller.upiId : "",
+    isPremiumSeller: seller ? !!seller.isPremium : false,
+    dist: (myLat && seller && seller.lat)
+      ? formatDistance(calcDistanceKm(myLat, myLng, seller.lat, seller.lng))
+      : "आपके आसपास",
+    img: (p.images && p.images[0]) || p.img || null,
+    images: p.images && p.images.length ? p.images : (p.img ? [p.img] : []),
+    stock: p.stock,
+    unit: p.unit,
+    featured: p.featured,
+    createdAt: p.createdAt || 0,
+    isMine: currentUser && p.sellerId === currentUser.uid,
+    isDemo: false,
+  };
+}
+
+async function loadFirstPage() {
+  const cached = readCache("homeProducts");
+  if (cached) {
+    listings = [...cached.listings, ...demoListings];
+    sellerCache = { ...sellerCache, ...cached.sellerCache };
+    hasMoreProducts = cached.hasMore;
+    return;
+  }
+
+  const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+  const snap = await getDocs(q);
+  const products = snap.docs.map((d) => ({ docId: d.id, ...d.data() }));
+  lastVisibleDoc = snap.docs[snap.docs.length - 1] || null;
+  hasMoreProducts = snap.docs.length === PAGE_SIZE;
+
+  const sellerIds = [...new Set(products.map((p) => p.sellerId))];
+  await fetchSellersBatched(sellerIds);
+
+  const fromFirebase = products.map((p) => mapProductToListing(p, p.docId));
+  listings = [...fromFirebase, ...demoListings];
+
+  writeCache("homeProducts", {
+    listings: fromFirebase,
+    sellerCache,
+    hasMore: hasMoreProducts,
   });
+}
 
-  listings = [...fromFirebase, ...demoListings].sort(
-    (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
-  );
+async function loadNextPage() {
+  if (!lastVisibleDoc) return;
+  const q = query(collection(db, "products"), orderBy("createdAt", "desc"), startAfter(lastVisibleDoc), limit(PAGE_SIZE));
+  const snap = await getDocs(q);
+  const products = snap.docs.map((d) => ({ docId: d.id, ...d.data() }));
+  lastVisibleDoc = snap.docs[snap.docs.length - 1] || null;
+  hasMoreProducts = snap.docs.length === PAGE_SIZE;
+
+  const sellerIds = [...new Set(products.map((p) => p.sellerId))];
+  await fetchSellersBatched(sellerIds);
+
+  const newItems = products.map((p) => mapProductToListing(p, p.docId));
+  listings = [...listings.filter((l) => !l.isDemo), ...newItems, ...demoListings];
 }
 
 function renderCategories() {
@@ -178,36 +242,29 @@ function renderProducts() {
   let filtered = listings.filter((item) => {
     const matchCat = activeCategory === "sab" || item.cat === activeCategory;
     if (!cleanSearch) return matchCat;
-
     const catLabel = (categories.find((c) => c.id === item.cat) || {}).label || "";
-    const searchableText = [item.title, item.sellerName, catLabel, item.sellerArea]
-      .join(" ")
-      .toLowerCase();
-
-    const matchSearch = searchableText.includes(cleanSearch);
-    return matchCat && matchSearch;
+    const searchableText = [item.title, item.sellerName, catLabel, item.sellerArea].join(" ").toLowerCase();
+    return matchCat && searchableText.includes(cleanSearch);
   });
 
-  if (sortMode === "price_low") {
-    filtered = [...filtered].sort((a, b) => a.price - b.price);
-  } else if (sortMode === "price_high") {
-    filtered = [...filtered].sort((a, b) => b.price - a.price);
-  } else if (sortMode === "newest") {
-    filtered = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  } else {
-    filtered = [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-  }
+  if (sortMode === "price_low") filtered = [...filtered].sort((a, b) => a.price - b.price);
+  else if (sortMode === "price_high") filtered = [...filtered].sort((a, b) => b.price - a.price);
+  else if (sortMode === "newest") filtered = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  else filtered = [...filtered].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
+  document.getElementById("loadMoreBtn").style.display = (hasMoreProducts && activeCategory === "sab" && !cleanSearch) ? "block" : "none";
 
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-emoji">🔍</div>
-        <p class="empty-state-title">कुछ नहीं मिला</p>
-        <p class="empty-state-sub">कोई और श्रेणी आज़माएँ या सर्च बदलकर देखें</p>
+        <p class="empty-state-title">${window.i18n.t("emptySearchTitle")}</p>
+        <p class="empty-state-sub">${window.i18n.t("emptySearchSub")}</p>
       </div>`;
     return;
   }
 
+  const frag = document.createDocumentFragment();
   filtered.forEach((item) => {
     const card = document.createElement("div");
     card.className = "card";
@@ -224,19 +281,35 @@ function renderProducts() {
         <div class="card-seller">🏬 ${item.sellerName} ${item.sellerArea ? "· " + item.sellerArea : ""}</div>
       </div>`;
     card.addEventListener("click", () => openDetail(item));
-
     const heartBtn = card.querySelector(".wishlist-heart");
     if (heartBtn) {
-      heartBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleWishlist(item);
-      });
+      heartBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleWishlist(item); });
     }
-    grid.appendChild(card);
+    frag.appendChild(card);
   });
+  grid.appendChild(frag);
 }
 
-function openDetail(item) {
+async function fetchSellerRating(sellerId) {
+  const cacheKey = "rating_" + sellerId;
+  const cached = readCache(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const q = query(collection(db, "reviews"), where("sellerId", "==", sellerId));
+    const snap = await getDocs(q);
+    const reviews = snap.docs.map((d) => d.data());
+    const result = reviews.length > 0
+      ? { avg: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1), count: reviews.length }
+      : { avg: null, count: 0 };
+    writeCache(cacheKey, result);
+    return result;
+  } catch (e) {
+    return { avg: null, count: 0 };
+  }
+}
+
+async function openDetail(item) {
   const modal = document.getElementById("detailModal");
   const gallery = item.images && item.images.length ? item.images : [item.img || "https://placehold.co/400x300/EDE4D3/1B2A4A?text=📦"];
   const logoSrc = item.sellerLogo || "https://placehold.co/80x80/1B2A4A/FFFFFF?text=🏬";
@@ -246,8 +319,8 @@ function openDetail(item) {
     ? `<p style="text-align:center; font-size:12px; color:#999; margin-top:10px;">यह आपकी अपनी दुकान का सामान है।</p>`
     : `
       <div class="detail-btn-row">
-        <button class="btn-secondary-outline" id="addToCartBtn">🛒 कार्ट में डालें</button>
-        <button class="btn-primary" id="startOrderBtn" style="margin-top:0;">⚡ अभी ऑर्डर करें</button>
+        <button class="btn-secondary-outline" id="addToCartBtn">${window.i18n.t("addToCart")}</button>
+        <button class="btn-primary" id="startOrderBtn" style="margin-top:0;">${window.i18n.t("orderNow")}</button>
       </div>
     `;
 
@@ -267,21 +340,21 @@ function openDetail(item) {
       <img class="seller-avatar-img" src="${logoSrc}" alt="shop logo">
       <div class="seller-info">
         <div class="seller-name">${item.sellerName} ${item.isPremiumSeller ? '<span class="verified-badge">✔️ वेरिफाइड</span>' : ""}</div>
-        ${item.ratingCount > 0 ? `<div class="rating-badge" style="margin-top:4px;">⭐ ${item.ratingAvg} (${item.ratingCount})</div>` : ""}
+        <div id="ratingSlot"></div>
         <div class="seller-area">📍 ${item.sellerArea || "इलाका उपलब्ध नहीं"}</div>
       </div>
     </div>
 
     ${orderButtonHtml}
+    ${!item.isDemo && !item.isMine ? `<a href="chat.html?sellerId=${item.sellerId}&sellerName=${encodeURIComponent(item.sellerName)}" class="shop-link-btn">💬 विक्रेता से चैट करें</a>` : ""}
     ${item.isMine ? `<a href="seller-profile.html" class="shop-link-btn">🏬 दुकान की पूरी प्रोफाइल देखें</a>` : ""}
-    <button class="btn-secondary" id="closeDetail">बंद करें</button>
+    <button class="btn-secondary" id="closeDetail">${window.i18n.t("closeBtn")}</button>
   `;
   document.getElementById("detailOverlay").classList.add("show");
   document.getElementById("closeDetail").addEventListener("click", closeDetail);
 
   const orderBtn = document.getElementById("startOrderBtn");
   if (orderBtn) orderBtn.addEventListener("click", () => startOrder(item));
-
   const cartBtn = document.getElementById("addToCartBtn");
   if (cartBtn) cartBtn.addEventListener("click", () => addToCart(item));
 
@@ -296,6 +369,15 @@ function openDetail(item) {
       dot.classList.add("active");
     });
   });
+
+  if (!item.isDemo) {
+    fetchSellerRating(item.sellerId).then((r) => {
+      const slot = document.getElementById("ratingSlot");
+      if (slot && r.count > 0) {
+        slot.innerHTML = `<div class="rating-badge" style="margin-top:4px;">⭐ ${r.avg} (${r.count})</div>`;
+      }
+    });
+  }
 }
 
 function openZoom(gallery, startIdx) {
@@ -344,25 +426,42 @@ async function addToCart(item) {
     return;
   }
   const cartItem = {
-    productId: item.id,
-    title: item.title,
-    price: item.price,
-    unit: item.unit || "",
-    img: item.img || null,
-    sellerId: item.sellerId,
-    sellerName: item.sellerName,
-    qty: 1,
+    productId: item.id, title: item.title, price: item.price, unit: item.unit || "",
+    img: item.img || null, sellerId: item.sellerId, sellerName: item.sellerName, qty: 1,
   };
   try {
-    await setDoc(doc(db, "carts", currentUser.uid), {
-      items: arrayUnion(cartItem),
-    }, { merge: true });
+    await setDoc(doc(db, "carts", currentUser.uid), { items: arrayUnion(cartItem) }, { merge: true });
     alert("✅ सामान कार्ट में डाल दिया गया!");
     closeDetail();
   } catch (err) {
     console.error(err);
     alert("कार्ट में डालने में दिक्कत आई।");
   }
+}
+
+function showPaymentPopup(item, orderId, amount) {
+  const qrBox = document.getElementById("qrSection");
+  const markPaidBtn = document.getElementById("markPaidBtn");
+  if (item.sellerUpi) {
+    const upiLink = `upi://pay?pa=${encodeURIComponent(item.sellerUpi)}&pn=${encodeURIComponent(item.sellerName)}&am=${amount}&cu=INR`;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
+    qrBox.innerHTML = `
+      <img src="${qrImgUrl}" alt="UPI QR" style="width:200px; height:200px; border-radius:10px; margin:10px 0;">
+      <p style="font-size:12px; color:#555;">UPI ID: <b>${item.sellerUpi}</b><br>राशि: ₹${amount}</p>`;
+    markPaidBtn.style.display = "block";
+    markPaidBtn.onclick = async () => {
+      await updateDoc(doc(db, "orders", orderId), { paymentStatus: "buyer_marked_paid" });
+      alert("धन्यवाद! विक्रेता को पैसा मिलने की पुष्टि करने के लिए सूचित कर दिया गया है।");
+      closePaymentPopup();
+    };
+  } else {
+    qrBox.innerHTML = `<p class="premium-hint">इस विक्रेता ने अभी UPI ID नहीं जोड़ी है। सामान मिलने पर नकद भुगतान करें।</p>`;
+    markPaidBtn.style.display = "none";
+  }
+  document.getElementById("paymentOverlay").classList.add("show");
+}
+function closePaymentPopup() {
+  document.getElementById("paymentOverlay").classList.remove("show");
 }
 
 function startOrder(item) {
@@ -386,129 +485,12 @@ function closeOrderForm() {
 async function handleOrderSubmit(e) {
   e.preventDefault();
   if (!orderTargetItem || !currentUser) return;
-
   const btn = document.getElementById("orderSubmitBtn");
   btn.disabled = true;
   btn.textContent = "भेजा जा रहा है...";
 
   const qty = Number(document.getElementById("orderQty").value);
   const order = {
-    productId: orderTargetItem.id,
-    productName: orderTargetItem.title,
-    productImg: orderTargetItem.img || null,
-    price: orderTargetItem.price,
-    unit: orderTargetItem.unit || "",
-    quantity: qty,
-    totalAmount: orderTargetItem.price * qty,
-    sellerId: orderTargetItem.sellerId,
-    sellerName: orderTargetItem.sellerName,
-    buyerId: currentUser.uid,
-    buyerName: document.getElementById("orderName").value,
-    buyerPhone: document.getElementById("orderPhone").value,
-    deliveryAddress: document.getElementById("orderAddress").value,
-    note: document.getElementById("orderNote").value,
-    status: "pending",
-    createdAt: Date.now(),
-  };
-
-  try {
-    await addDoc(collection(db, "orders"), order);
-    alert("✅ आपका ऑर्डर भेज दिया गया है! विक्रेता के स्वीकार करने का इंतज़ार करें। आप 'मेरे ऑर्डर' पेज पर स्थिति देख सकते हैं।");
-    closeOrderForm();
-    document.getElementById("orderForm").reset();
-  } catch (err) {
-    console.error(err);
-    alert("ऑर्डर भेजने में दिक्कत आई। दोबारा कोशिश करें।");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "ऑर्डर भेजें";
-  }
-}
-
-function handleSearch(e) {
-  searchText = e.target.value;
-  const clean = searchText.trim().toLowerCase();
-
-  const matchedCat = categories.find(
-    (c) => c.id !== "sab" && c.label.toLowerCase() === clean
-  );
-  if (matchedCat) {
-    activeCategory = matchedCat.id;
-    renderCategories();
-  }
-
-  renderProducts();
-}
-
-function updateAuthLink() {
-  const link = document.getElementById("authLink");
-  const accountMenuLink = document.getElementById("accountMenuLink");
-  const ordersMenuLink = document.getElementById("ordersMenuLink");
-
-  if (currentUser) {
-    link.textContent = "👤 खाता";
-    link.href = "my-orders.html";
-    accountMenuLink.textContent = "👤 मेरा अकाउंट (लॉगआउट)";
-    accountMenuLink.href = "#";
-    accountMenuLink.onclick = async (e) => {
-      e.preventDefault();
-      await signOut(auth);
-      window.location.reload();
-    };
-    ordersMenuLink.href = "my-orders.html";
-    document.getElementById("wishlistMenuLink").href = "wishlist.html";
-  } else {
-    link.textContent = "लॉगिन";
-    link.href = "login.html";
-    accountMenuLink.textContent = "👤 लॉगिन / अकाउंट बनाएँ";
-    accountMenuLink.href = "login.html";
-    accountMenuLink.onclick = null;
-    ordersMenuLink.href = "login.html?next=my-orders.html";
-    document.getElementById("wishlistMenuLink").href = "login.html?next=wishlist.html";
-  }
-}
-
-function openSideMenu() {
-  document.getElementById("sideMenuOverlay").classList.add("show");
-}
-function closeSideMenu() {
-  document.getElementById("sideMenuOverlay").classList.remove("show");
-}
-
-document.getElementById("detailOverlay").addEventListener("click", function (e) { if (e.target === this) closeDetail(); });
-document.getElementById("orderOverlay").addEventListener("click", function (e) { if (e.target === this) closeOrderForm(); });
-document.getElementById("cancelOrder").addEventListener("click", closeOrderForm);
-document.getElementById("orderForm").addEventListener("submit", handleOrderSubmit);
-document.getElementById("menuBtn").addEventListener("click", openSideMenu);
-document.getElementById("closeMenuBtn").addEventListener("click", closeSideMenu);
-document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) closeSideMenu();
-});
-document.getElementById("zoomOverlay").addEventListener("click", () => {
-  document.getElementById("zoomOverlay").classList.remove("show");
-});
-document.getElementById("zoomCloseBtn").addEventListener("click", (e) => {
-  e.stopPropagation();
-  document.getElementById("zoomOverlay").classList.remove("show");
-});
-document.getElementById("searchInput").addEventListener("input", handleSearch);
-document.getElementById("sortSelect").addEventListener("change", (e) => {
-  sortMode = e.target.value;
-  renderProducts();
-});
-
-async function init() {
-  renderWelcomeBanner();
-  renderSkeleton();
-  await getMyLocation();
-  myWishlistIds = await fetchWishlist();
-  await loadListings();
-  renderCategories();
-  renderProducts();
-}
-
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  updateAuthLink();
-  await init();
-});
+    productId: orderTargetItem.id, productName: orderTargetItem.title, productImg: orderTargetItem.img || null,
+    price: orderTargetItem.price, unit: orderTargetItem.unit || "", quantity: qty, totalAmount: orderTargetItem.price * qty,
+    seller
