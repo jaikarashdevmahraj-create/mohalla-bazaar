@@ -1584,3 +1584,11 @@ body {
   body { background: white; }
   .invoice-paper { box-shadow: none; margin: 0; }
 }
+.cancel-reason-box {
+  background: #FDECEC;
+  color: #C0392B;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
