@@ -11,19 +11,22 @@
   <header class="header">
     <div class="header-top">
       <button type="button" id="menuBtn" class="menu-btn" aria-label="मेन्यू">☰</button>
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
-      <a href="#" id="authLink" class="about-link">लॉगिन</a>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
+      <div class="header-links">
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="#" id="authLink" class="about-link" data-i18n="login">लॉगिन</a>
+      </div>
     </div>
     <div class="location">📍 शास्त्री नगर, आपके 3 किमी के दायरे में</div>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="क्या ढूंढ रहे हैं? जैसे 'टमाटर', 'कुर्ती'...">
+      <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="क्या ढूंढ रहे हैं? जैसे 'टमाटर', 'कुर्ती'...">
     </div>
     <div class="sort-row">
       <select id="sortSelect">
-        <option value="relevant">सबसे ऊपर: प्रासंगिक</option>
-        <option value="price_low">कीमत: कम से ज़्यादा</option>
-        <option value="price_high">कीमत: ज़्यादा से कम</option>
-        <option value="newest">सबसे नया सामान</option>
+        <option value="relevant" data-i18n="sortRelevant">सबसे ऊपर: प्रासंगिक</option>
+        <option value="price_low" data-i18n="sortPriceLow">कीमत: कम से ज़्यादा</option>
+        <option value="price_high" data-i18n="sortPriceHigh">कीमत: ज़्यादा से कम</option>
+        <option value="newest" data-i18n="sortNewest">सबसे नया सामान</option>
       </select>
     </div>
     <div class="stripe">
@@ -38,31 +41,30 @@
   <div class="side-menu-overlay" id="sideMenuOverlay">
     <div class="side-menu">
       <div class="side-menu-header">
-        <span class="disp">मेन्यू</span>
+        <span class="disp" data-i18n="menu">मेन्यू</span>
         <button type="button" id="closeMenuBtn" class="close-menu-btn">✕</button>
       </div>
-      <a href="index.html" class="side-menu-item">🏠 होम</a>
-      <a href="cart.html" class="side-menu-item">🛒 कार्ट</a>
-      <a href="#" id="wishlistMenuLink" class="side-menu-item">❤️ मेरी पसंद</a>
-      <a href="#" id="ordersMenuLink" class="side-menu-item">📦 मेरे ऑर्डर</a>
-      <a href="#" id="accountMenuLink" class="side-menu-item">👤 मेरा अकाउंट</a>
-      <a href="seller.html" class="side-menu-item">🛍️ विक्रेता डैशबोर्ड</a>
-      <a href="about.html" class="side-menu-item">ℹ️ हमारे बारे में</a>
+      <a href="index.html" class="side-menu-item" data-i18n="menuHome">🏠 होम</a>
+      <a href="cart.html" class="side-menu-item" data-i18n="menuCart">🛒 कार्ट</a>
+      <a href="#" id="wishlistMenuLink" class="side-menu-item" data-i18n="menuWishlist">❤️ मेरी पसंद</a>
+      <a href="#" id="ordersMenuLink" class="side-menu-item" data-i18n="menuOrders">📦 मेरे ऑर्डर</a>
+      <a href="#" id="accountMenuLink" class="side-menu-item" data-i18n="menuAccount">👤 मेरा अकाउंट</a>
+      <a href="seller.html" class="side-menu-item" data-i18n="menuSeller">🛍️ विक्रेता डैशबोर्ड</a>
+      <a href="about.html" class="side-menu-item" data-i18n="menuAbout">ℹ️ हमारे बारे में</a>
     </div>
   </div>
 
-  <!-- ===== स्वागत बैनर ===== -->
   <div class="welcome-banner" id="welcomeBanner"></div>
 
   <div class="categories" id="categories"></div>
 
   <main class="grid" id="productGrid"></main>
+  <button type="button" id="loadMoreBtn" class="edit-toggle-btn" style="display:none; margin:0 16px 20px;">और सामान दिखाएँ</button>
 
   <div class="modal-overlay" id="detailOverlay">
     <div class="modal" id="detailModal"></div>
   </div>
 
-  <!-- ===== फोटो ज़ूम पॉपअप ===== -->
   <div class="zoom-overlay" id="zoomOverlay">
     <button type="button" class="zoom-close-btn" id="zoomCloseBtn">✕</button>
     <img id="zoomImg" alt="zoom">
@@ -94,6 +96,17 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="paymentOverlay">
+    <div class="modal">
+      <h2>✅ ऑर्डर भेज दिया गया!</h2>
+      <p class="premium-hint" id="paymentIntro">चाहें तो अभी UPI से भुगतान कर सकते हैं, या सामान मिलने पर नकद भी दे सकते हैं।</p>
+      <div id="qrSection" style="text-align:center;"></div>
+      <button type="button" class="btn-primary" id="markPaidBtn">मैंने UPI से भुगतान कर दिया है</button>
+      <button type="button" class="btn-secondary" id="closePaymentPopup">बाद में / नकद देंगे</button>
+    </div>
+  </div>
+
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="script.js"></script>
 </body>
