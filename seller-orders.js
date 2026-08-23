@@ -94,18 +94,46 @@ window.acceptOrder = async function (id) {
   await refresh();
 };
 
-window.cancelOrder = async function (id) {
-  if (!confirm("क्या आप वाकई इस ऑर्डर को रद्द करना चाहते हैं?")) return;
-  await updateDoc(doc(db, "orders", id), { status: "cancelled" });
-  await refresh();
+let cancelTargetId = null;
+
+window.cancelOrder = function (id) {
+  cancelTargetId = id;
+  document.getElementById("cancelReasonOverlay").classList.add("show");
 };
+
+function closeCancelReasonForm() {
+  document.getElementById("cancelReasonOverlay").classList.remove("show");
+  cancelTargetId = null;
+}
+
+async function handleCancelReasonSubmit(e) {
+  e.preventDefault();
+  if (!cancelTargetId) return;
+
+  const reason = document.getElementById("cancelReasonSelect").value;
+  const note = document.getElementById("cancelReasonNote").value;
+
+  await updateDoc(doc(db, "orders", cancelTargetId), {
+    status: "cancelled",
+    cancelReason: reason,
+    cancelNote: note,
+  });
+
+  closeCancelReasonForm();
+  document.getElementById("cancelReasonForm").reset();
+  await refresh();
+}
 
 async function refresh() {
   allOrders = await fetchOrders();
   renderStats();
   renderOrdersList();
 }
+document.getElementById("cancelReasonCancel").addEventListener("click", closeCancelReasonForm);
+document.getElementById("cancelReasonOverlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeCancelReasonForm(); });
+document.getElementById("cancelReasonForm").addEventListener("submit", handleCancelReasonSubmit);
 
+document.getElementById("orderTabs").addEventListener("click", (e) => {
 document.getElementById("orderTabs").addEventListener("click", (e) => {
   const btn = e.target.closest(".order-tab");
   if (!btn) return;
