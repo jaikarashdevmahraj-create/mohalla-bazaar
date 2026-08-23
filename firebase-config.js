@@ -1,4 +1,3 @@
-// ===== Firebase से जोड़ना =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
@@ -6,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore,
@@ -23,7 +23,11 @@ import {
   arrayUnion,
   arrayRemove,
   onSnapshot,
+  limit,
+  startAfter,
+  documentId,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyA0RSPrTASfJQLBHHr1hpH0IFe-Qlas_GA",
   authDomain: "mohalla-bazaar-41459.firebaseapp.com",
@@ -37,7 +41,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ===== इस फोन की "सेलर आईडी" — यह पहचानती है कि यह डेटा किसका है =====
 function getMySellerId() {
   let id = localStorage.getItem("myDeviceSellerId");
   if (!id) {
@@ -47,9 +50,8 @@ function getMySellerId() {
   return id;
 }
 
-// बाकी फाइलों में इस्तेमाल करने के लिए एक्सपोर्ट करना
 window.firebaseDB = db;
- window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, arrayRemove, onSnapshot };
+window.firebaseTools = { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, arrayRemove, onSnapshot, limit, startAfter, documentId };
 window.getMySellerId = getMySellerId;
 window.firebaseAuth = auth;
-window.authTools = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
+window.authTools = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail };
