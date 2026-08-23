@@ -44,6 +44,9 @@ function renderOrdersList() {
   wrap.innerHTML = filtered.map((o) => {
     const st = statusLabel(o.status);
     const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString("hi-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const cancelInfoHtml = (o.status === "cancelled" && o.cancelReason)
+      ? `<div class="cancel-reason-box">❌ रद्द होने का कारण: <b>${o.cancelReason}</b>${o.cancelNote ? ` — ${o.cancelNote}` : ""}</div>`
+      : "";
     const alreadyReviewed = reviewedOrderIds.has(o.id);
     const reviewBtnHtml = o.status === "accepted"
       ? (alreadyReviewed
@@ -66,6 +69,7 @@ function renderOrdersList() {
           <div>🏠 डिलीवरी पता: ${o.deliveryAddress}</div>
           <div class="order-date">🕒 ${date}</div>
         </div>
+        ${cancelInfoHtml}
         <a href="invoice.html?id=${o.id}" class="shop-link-btn" style="margin-top:8px;">🧾 इनवॉइस देखें</a>
         ${reviewBtnHtml}
       </div>
