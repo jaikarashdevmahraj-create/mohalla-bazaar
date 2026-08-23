@@ -82,6 +82,7 @@ function renderOrdersList() {
           ${o.note ? `<div>📝 ${o.note}</div>` : ""}
           <div class="order-date">🕒 ${date}</div>
         </div>
+        <a href="invoice.html?id=${o.id}" class="shop-link-btn" style="margin-top:8px;">🧾 इनवॉइस देखें</a>
         ${actionsHtml}
       </div>
     `;
