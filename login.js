@@ -1,6 +1,6 @@
 const auth = window.firebaseAuth;
 const db = window.firebaseDB;
-const { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } = window.authTools;
+const { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } = window.authTools;
 const { doc, setDoc } = window.firebaseTools;
 
 function showTab(tab) {
@@ -20,7 +20,6 @@ function showMessage(text, isError) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ===== कहाँ भेजना है, यह लिंक से तय होता है: login.html?next=seller.html =====
 function getNextPage() {
   const params = new URLSearchParams(window.location.search);
   return params.get("next") || "index.html";
@@ -86,12 +85,39 @@ async function handleSignup(e) {
   }
 }
 
-// अगर पहले से लॉगिन है, तो सीधे आगे भेज दो
+async function handleForgotPassword() {
+  const email = document.getElementById("loginEmail").value;
+  if (!email) {
+    showMessage("पहले ऊपर अपना ईमेल लिखें, फिर 'पासवर्ड भूल गए?' दबाएँ।", true);
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMessage("✅ पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है। अपना इनबॉक्स चेक करें।", false);
+  } catch (err) {
+    console.error(err);
+    showMessage("लिंक भेजने में दिक्कत आई। ईमेल सही है या चेक करें।", true);
+  }
+}
+
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+});
+
+document.getElementById("forgotPasswordLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  handleForgotPassword();
+});
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
     window.location.href = getNextPage();
   }
 });
+
+window.i18n.applyTranslations();
 
 document.getElementById("tabLogin").addEventListener("click", () => showTab("login"));
 document.getElementById("tabSignup").addEventListener("click", () => showTab("signup"));
