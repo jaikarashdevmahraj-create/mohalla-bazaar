@@ -47,6 +47,29 @@
       <!-- ===== ऑर्डर लिस्ट ===== -->
       <div id="ordersList"></div>
 
+      <!-- ===== रद्द करने का कारण पूछने वाला पॉपअप ===== -->
+      <div class="modal-overlay" id="cancelReasonOverlay">
+        <div class="modal">
+          <h2>रद्द करने का कारण</h2>
+          <form id="cancelReasonForm">
+            <label>कारण चुनें</label>
+            <select id="cancelReasonSelect">
+              <option value="स्टॉक खत्म हो गया">स्टॉक खत्म हो गया</option>
+              <option value="डिलीवरी क्षेत्र से बाहर">डिलीवरी क्षेत्र से बाहर</option>
+              <option value="ग्राहक से संपर्क नहीं हो पाया">ग्राहक से संपर्क नहीं हो पाया</option>
+              <option value="गलत जानकारी/ऑर्डर">गलत जानकारी/ऑर्डर</option>
+              <option value="अन्य">अन्य कारण</option>
+            </select>
+
+            <label>अतिरिक्त जानकारी (वैकल्पिक)</label>
+            <input type="text" id="cancelReasonNote" placeholder="कोई और जानकारी लिखें">
+
+            <button type="submit" class="delete-account-btn" style="margin-top:16px;">रद्द करना पक्का करें</button>
+            <button type="button" class="btn-secondary" id="cancelReasonCancel">वापस जाएँ</button>
+          </form>
+        </div>
+      </div>
+
     </div>
 
   </div>
