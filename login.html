@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="index.html" class="about-link">🏠 होमपेज</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="index.html" class="about-link" data-i18n="menuHome">🏠 होमपेज</a>
       </div>
     </div>
     <div class="stripe">
@@ -28,53 +29,53 @@
 
     <div class="success-banner" id="successBanner"></div>
 
-    <!-- ===== टैब: लॉगिन / नया अकाउंट ===== -->
     <div class="auth-tabs">
-      <button type="button" class="auth-tab active" id="tabLogin">लॉगिन करें</button>
-      <button type="button" class="auth-tab" id="tabSignup">नया अकाउंट बनाएँ</button>
+      <button type="button" class="auth-tab active" id="tabLogin" data-i18n="loginTab">लॉगिन करें</button>
+      <button type="button" class="auth-tab" id="tabSignup" data-i18n="signupTab">नया अकाउंट बनाएँ</button>
     </div>
 
-    <!-- ===== लॉगिन फॉर्म ===== -->
     <div class="section-box" id="loginBox">
-      <h3>अपने अकाउंट में लॉगिन करें</h3>
+      <h3 data-i18n="loginTitle">अपने अकाउंट में लॉगिन करें</h3>
       <form id="loginForm">
-        <label>ईमेल</label>
+        <label data-i18n="emailLabel">ईमेल</label>
         <input type="email" id="loginEmail" required placeholder="jaise: aap@example.com">
 
-        <label>पासवर्ड</label>
+        <label data-i18n="passwordLabel">पासवर्ड</label>
         <input type="password" id="loginPassword" required placeholder="अपना पासवर्ड डालें">
 
-        <button type="submit" class="btn-primary" id="loginBtn">लॉगिन करें</button>
+        <a href="#" id="forgotPasswordLink" class="forgot-link" data-i18n="forgotPassword">पासवर्ड भूल गए?</a>
+
+        <button type="submit" class="btn-primary" id="loginBtn" data-i18n="loginBtn">लॉगिन करें</button>
       </form>
     </div>
 
-    <!-- ===== साइन-अप फॉर्म ===== -->
     <div class="section-box" id="signupBox" style="display:none;">
-      <h3>नया अकाउंट बनाएँ</h3>
+      <h3 data-i18n="signupTitle">नया अकाउंट बनाएँ</h3>
       <form id="signupForm">
-        <label>आपका नाम</label>
+        <label data-i18n="yourName">आपका नाम</label>
         <input type="text" id="signupName" required placeholder="जैसे: सुनीता देवी">
 
-        <label>ईमेल</label>
+        <label data-i18n="emailLabel">ईमेल</label>
         <input type="email" id="signupEmail" required placeholder="jaise: aap@example.com">
 
-        <label>पासवर्ड (कम से कम 6 अक्षर)</label>
+        <label data-i18n="newPassword">पासवर्ड (कम से कम 6 अक्षर)</label>
         <input type="password" id="signupPassword" required minlength="6" placeholder="नया पासवर्ड बनाएँ">
 
-        <label>आप कौन हैं?</label>
+        <label data-i18n="whoAreYou">आप कौन हैं?</label>
         <select id="signupRole">
-          <option value="buyer">🛒 ग्राहक (खरीदना है)</option>
-          <option value="seller">🏬 विक्रेता (दुकान चलानी है)</option>
+          <option value="buyer" data-i18n="roleBuyer">🛒 ग्राहक (खरीदना है)</option>
+          <option value="seller" data-i18n="roleSeller">🏬 विक्रेता (दुकान चलानी है)</option>
         </select>
 
-        <button type="submit" class="btn-primary" id="signupBtn">अकाउंट बनाएँ</button>
+        <button type="submit" class="btn-primary" id="signupBtn" data-i18n="signupBtn">अकाउंट बनाएँ</button>
       </form>
     </div>
 
-    <p class="auth-note">🔒 यह जानकारी सुरक्षित रहती है और सिर्फ़ आपके अकाउंट की पहचान के लिए इस्तेमाल होगी।</p>
+    <p class="auth-note" data-i18n="authNote">🔒 यह जानकारी सुरक्षित रहती है और सिर्फ़ आपके अकाउंट की पहचान के लिए इस्तेमाल होगी।</p>
 
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="login.js"></script>
 </body>
