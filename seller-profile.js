@@ -11,6 +11,18 @@ let capturedLat = null;
 let capturedLng = null;
 let myRatingInfo = { avg: 0, count: 0 };
 
+function isPremium() {
+  return currentProfile ? !!currentProfile.isPremium : false;
+}
+function getProductCount() {
+  const data = localStorage.getItem("mySellerProducts");
+  return data ? JSON.parse(data).length : 0;
+}
+function generateShopId() {
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return "MB-" + random;
+}
+
 async function fetchRatingInfo(sellerId) {
   const q = query(collection(db, "reviews"), where("sellerId", "==", sellerId));
   const snap = await getDocs(q);
@@ -18,17 +30,6 @@ async function fetchRatingInfo(sellerId) {
   if (reviews.length === 0) return { avg: 0, count: 0 };
   const total = reviews.reduce((s, r) => s + r.rating, 0);
   return { avg: (total / reviews.length).toFixed(1), count: reviews.length };
-}
-
-function isPremium() {
-  return currentProfile ? !!currentProfile.isPremium : false;
-}
-function getProductCount() {
-  return currentProfile && currentProfile._productCount ? currentProfile._productCount : 0;
-}
-function generateShopId() {
-  const random = Math.floor(100000 + Math.random() * 900000);
-  return "MB-" + random;
 }
 
 function resizeImage(file, maxSize, quality, callback) {
@@ -43,7 +44,14 @@ function resizeImage(file, maxSize, quality, callback) {
       canvas.width = w;
       canvas.height = h;
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL("image/jpeg", quality));
+
+      let q = quality;
+      let dataUrl = canvas.toDataURL("image/jpeg", q);
+      while (dataUrl.length > 180000 && q > 0.3) {
+        q -= 0.1;
+        dataUrl = canvas.toDataURL("image/jpeg", q);
+      }
+      callback(dataUrl);
     };
     img.src = e.target.result;
   };
@@ -108,7 +116,7 @@ function renderStorefront() {
         <div class="storefront-area">📍 ${addressLine} — ${p.pincode}</div>
       </div>
     </div>
-   <div class="shop-id-badge">🆔 शॉप आईडी: <b>${p.shopId}</b></div>
+    <div class="shop-id-badge">🆔 शॉप आईडी: <b>${p.shopId}</b></div>
     ${myRatingInfo.count > 0
       ? `<div class="rating-badge">⭐ ${myRatingInfo.avg} (${myRatingInfo.count} रिव्यू)</div>`
       : `<div class="rating-badge rating-none">अभी कोई रिव्यू नहीं</div>`}
@@ -134,6 +142,7 @@ function loadFormFromProfile() {
   document.getElementById("shopName").value = p.shopName || "";
   document.getElementById("ownerName").value = p.ownerName || "";
   document.getElementById("phone").value = p.phone || "";
+  document.getElementById("upiId").value = p.upiId || "";
   document.getElementById("state").value = p.state || "";
   document.getElementById("district").value = p.district || "";
   document.getElementById("tehsil").value = p.tehsil || "";
@@ -183,6 +192,7 @@ async function handleProfileSubmit(e) {
     shopName: document.getElementById("shopName").value,
     ownerName: document.getElementById("ownerName").value,
     phone: document.getElementById("phone").value,
+    upiId: document.getElementById("upiId").value,
     state: document.getElementById("state").value,
     district: document.getElementById("district").value,
     tehsil: document.getElementById("tehsil").value,
@@ -193,9 +203,9 @@ async function handleProfileSubmit(e) {
     banner: bannerImg,
     logo: logoImg,
     shopId: (existing && existing.shopId) ? existing.shopId : generateShopId(),
+    isPremium: existing ? !!existing.isPremium : false,
     lat: capturedLat,
     lng: capturedLng,
-    isPremium: existing ? !!existing.isPremium : false,
     joinedLabel: existing
       ? existing.joinedLabel
       : new Date().toLocaleDateString("hi-IN", { month: "long", year: "numeric" }),
@@ -287,8 +297,15 @@ document.getElementById("captureLocationBtn").addEventListener("click", () => {
     }
   );
 });
-// ===== लॉगिन चेक — बिना लॉगिन कोई भी यह पेज नहीं देख सकता =====
+
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html?next=seller-profile.html";
     return;
