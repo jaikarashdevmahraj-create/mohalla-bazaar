@@ -4,13 +4,20 @@ const { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, se
 const { onAuthStateChanged, signOut } = window.authTools;
 
 const FREE_LIMIT = 5;
-const MAX_IMAGES = 3;
 const catLabels = {
   sabzi: "🥕 सब्ज़ी-राशन",
+  khana: "🍲 खाना/टिफिन",
   kapde: "👕 कपड़े",
   ghar: "🛋️ घरेलू सामान",
   electronics: "🔌 इलेक्ट्रॉनिक्स",
   handmade: "🧶 हस्तशिल्प",
+  beauty: "💄 सौंदर्य/देखभाल",
+  kheti: "🚜 खेती/कृषि",
+  pashupalan: "🐄 पशुपालन",
+  books: "📚 किताबें/स्टेशनरी",
+  toys: "🧸 खिलौने",
+  tools: "🔧 औज़ार/हार्डवेयर",
+  vehicle: "🚗 गाड़ी/स्पेयर पार्ट्स",
 };
 
 let editingId = null;
@@ -38,7 +45,7 @@ async function fetchAcceptedOrders() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-function resizeImage(file, maxSize, quality, callback) {
+function resizeImage(file, maxSize, callback) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const img = new Image();
@@ -50,12 +57,21 @@ function resizeImage(file, maxSize, quality, callback) {
       canvas.width = w;
       canvas.height = h;
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL("image/jpeg", quality));
+
+      let quality = 0.7;
+      let dataUrl = canvas.toDataURL("image/jpeg", quality);
+      while (dataUrl.length > 150000 && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
+      }
+      callback(dataUrl);
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
+
+const MAX_IMAGES = 3;
 
 function renderMultiImgPreview() {
   const wrap = document.getElementById("multiImgPreview");
@@ -81,7 +97,7 @@ function handleImageSelect(e) {
   }
   const toProcess = files.slice(0, remaining);
   toProcess.forEach((file) => {
-    resizeImage(file, 500, 0.6, (dataUrl) => {
+    resizeImage(file, 500, (dataUrl) => {
       currentProductImages.push(dataUrl);
       renderMultiImgPreview();
     });
@@ -345,15 +361,6 @@ async function renderAll() {
   renderLimitNote();
 }
 
-document.getElementById("sellerForm").addEventListener("submit", handleSubmit);
-document.getElementById("cancelEdit").addEventListener("click", resetForm);
-document.getElementById("pImgFile").addEventListener("change", handleImageSelect);
-document.getElementById("logoutLink").addEventListener("click", async (e) => {
-  e.preventDefault();
-  await signOut(auth);
-  window.location.href = "index.html";
-});
-
 function listenForPendingOrders() {
   const q = query(collection(db, "orders"), where("sellerId", "==", myUid), where("status", "==", "pending"));
   onSnapshot(q, (snap) => {
@@ -368,7 +375,68 @@ function listenForPendingOrders() {
     }
   });
 }
+
+document.getElementById("sellerForm").addEventListener("submit", handleSubmit);
+document.getElementById("cancelEdit").addEventListener("click", resetForm);
+document.getElementById("pImgFile").addEventListener("change", handleImageSelect);
+
+document.getElementById("csvFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = document.getElementById("csvStatus");
+  status.textContent = "पढ़ा जा रहा है...";
+
+  const validCats = ["sabzi", "khana", "kapde", "ghar", "electronics", "handmade", "beauty", "kheti", "pashupalan", "books", "toys", "tools", "vehicle"];
+
+  const text = await file.text();
+  const lines = text.split("\n").map((l) => l.trim()).filter((l) => l);
+
+  let added = 0, skipped = 0;
+
+  for (const line of lines) {
+    const parts = line.split(",").map((p) => p.trim());
+    if (parts.length < 5) { skipped++; continue; }
+    const [name, priceStr, unit, stockStr, cat] = parts;
+    const price = Number(priceStr);
+    const stock = Number(stockStr);
+
+    if (!name || isNaN(price) || isNaN(stock) || !validCats.includes(cat)) {
+      skipped++;
+      continue;
+    }
+
+    if (!isPremium() && myProductsCache.length + added >= FREE_LIMIT) {
+      status.textContent = `⚠️ फ्री प्लान की ${FREE_LIMIT} सामान की सीमा आ गई। रुक गया।`;
+      break;
+    }
+
+    await addDoc(collection(db, "products"), {
+      name, price, unit, stock, cat,
+      images: [], img: null,
+      sellerId: myUid, featured: false, createdAt: Date.now(),
+    });
+    added++;
+  }
+
+  status.textContent = `✅ ${added} सामान जोड़े गए। ${skipped > 0 ? `❌ ${skipped} लाइनें गलत फ़ॉर्मेट की वजह से छोड़ी गईं।` : ""}`;
+  document.getElementById("csvFile").value = "";
+  await renderAll();
+});
+
+document.getElementById("logoutLink").addEventListener("click", async (e) => {
+  e.preventDefault();
+  await signOut(auth);
+  window.location.href = "index.html";
+});
+
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html?next=seller.html";
     return;
