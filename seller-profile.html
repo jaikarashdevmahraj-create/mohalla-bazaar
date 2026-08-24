@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="seller.html" class="about-link">📊 डैशबोर्ड</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="seller.html" class="about-link" data-i18n="dashboardLink">📊 डैशबोर्ड</a>
       </div>
     </div>
     <div class="stripe">
@@ -28,84 +29,85 @@
 
     <div class="success-banner" id="successBanner">✅ आपकी दुकान की प्रोफाइल सेव हो गई!</div>
 
-    <!-- ===== जब तक लॉगिन चेक हो रहा है ===== -->
-    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
 
-    <!-- ===== असली कंटेंट — लॉगिन के बाद दिखेगा ===== -->
     <div id="pageContent" style="display:none;">
 
       <div class="storefront-card" id="storefrontPreview"></div>
 
-      <button type="button" class="edit-toggle-btn" id="editToggleBtn" style="display:none;">
+      <button type="button" class="edit-toggle-btn" id="editToggleBtn" style="display:none;" data-i18n="editShopInfo">
         ✏️ दुकान की जानकारी बदलें
       </button>
 
-      <button type="button" class="delete-account-btn" id="deleteAccountBtn" style="display:none;">
+      <button type="button" class="delete-account-btn" id="deleteAccountBtn" style="display:none;" data-i18n="deleteShopAccount">
         🗑️ मेरा सेलर अकाउंट डिलीट करें
       </button>
 
       <div class="section-box" id="formSectionBox">
-        <h3 id="formSectionTitle">दुकान की जानकारी भरें</h3>
+        <h3 id="formSectionTitle" data-i18n="fillShopInfo">दुकान की जानकारी भरें</h3>
         <form id="profileForm">
 
-          <label>दुकान की कवर फोटो</label>
+          <label data-i18n="shopCoverPhoto">दुकान की कवर फोटो</label>
           <div class="upload-row">
             <input type="file" accept="image/*" id="bannerFile" class="file-input">
-            <label for="bannerFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+            <label for="bannerFile" class="upload-btn" data-i18n="chooseFromGallery">🖼️ गैलरी से चुनें</label>
           </div>
           <div class="img-preview-wrap" id="bannerPreviewWrap" style="display:none;">
             <img id="bannerPreview" alt="banner preview">
           </div>
 
-          <label>दुकान का लोगो / आपकी फोटो</label>
+          <label data-i18n="shopLogoPhoto">दुकान का लोगो / आपकी फोटो</label>
           <div class="upload-row">
             <input type="file" accept="image/*" id="logoFile" class="file-input">
-            <label for="logoFile" class="upload-btn">🖼️ गैलरी से चुनें</label>
+            <label for="logoFile" class="upload-btn" data-i18n="chooseFromGallery">🖼️ गैलरी से चुनें</label>
           </div>
           <div class="img-preview-wrap logo-preview-wrap" id="logoPreviewWrap" style="display:none;">
             <img id="logoPreview" alt="logo preview">
           </div>
 
-          <label>दुकान का नाम</label>
+          <label data-i18n="shopName">दुकान का नाम</label>
           <input type="text" id="shopName" required placeholder="जैसे: सुनीता जनरल स्टोर">
 
-          <label>मालिक का नाम</label>
+          <label data-i18n="ownerName">मालिक का नाम</label>
           <input type="text" id="ownerName" required placeholder="जैसे: सुनीता देवी">
 
-          <label>मोबाइल नंबर</label>
+          <label data-i18n="mobileNumber">मोबाइल नंबर</label>
           <input type="tel" id="phone" required placeholder="जैसे: 98765 43210">
 
-          <h4 class="form-subheading">📍 पते की जानकारी</h4>
+          <label data-i18n="upiIdLabel">UPI ID (भुगतान पाने के लिए, वैकल्पिक)</label>
+          <input type="text" id="upiId" placeholder="जैसे: 9876543210@paytm">
 
-          <label>राज्य</label>
+          <h4 class="form-subheading" data-i18n="addressInfo">📍 पते की जानकारी</h4>
+
+          <label data-i18n="stateLabel">राज्य</label>
           <input type="text" id="state" required placeholder="जैसे: मध्य प्रदेश">
 
-          <label>ज़िला</label>
+          <label data-i18n="districtLabel">ज़िला</label>
           <input type="text" id="district" required placeholder="जैसे: इंदौर">
 
-          <label>तहसील</label>
+          <label data-i18n="tehsilLabel">तहसील</label>
           <input type="text" id="tehsil" placeholder="जैसे: देपालपुर">
 
-          <label>गाँव / इलाका</label>
+          <label data-i18n="villageLabel">गाँव / इलाका</label>
           <input type="text" id="village" required placeholder="जैसे: शास्त्री नगर">
 
-          <label>पिन कोड (Area Code)</label>
+          <label data-i18n="pincodeLabel">पिन कोड (Area Code)</label>
           <input type="text" id="pincode" required maxlength="6" pattern="[0-9]{6}" placeholder="जैसे: 452001">
 
-          <label>दुकान की सटीक लोकेशन (GPS)</label>
-          <button type="button" id="captureLocationBtn" class="upload-btn" style="width:100%; box-sizing:border-box;">
+          <label data-i18n="fullAddressLabel">पूरा घर/दुकान का पता</label>
+          <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
+
+          <label data-i18n="shopDescLabel">दुकान के बारे में (छोटा परिचय)</label>
+          <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
+
+          <label data-i18n="captureLocation">दुकान की सटीक लोकेशन (GPS)</label>
+          <button type="button" id="captureLocationBtn" class="upload-btn" style="width:100%; box-sizing:border-box;" data-i18n="captureLocation">
             📍 अभी अपनी लोकेशन कैप्चर करें
           </button>
           <p id="locationStatus" class="premium-hint"></p>
 
-          <label>पूरा घर/दुकान का पता</label>
-          <input type="text" id="fullAddress" required placeholder="जैसे: मकान नंबर 12, गली नंबर 3, मुख्य रोड के पास">
-
-          <label>दुकान के बारे में (छोटा परिचय)</label>
-          <input type="text" id="description" placeholder="जैसे: 10 साल से ताज़ी सब्ज़ी और राशन">
-
-          <button type="submit" class="btn-primary" id="profileSubmitBtn">प्रोफाइल सेव करें</button>
-          <button type="button" class="btn-secondary" id="cancelEditProfile" style="display:none;">बंद करें</button>
+          <button type="submit" class="btn-primary" id="profileSubmitBtn" data-i18n="saveProfileBtn">प्रोफाइल सेव करें</button>
+          <button type="button" class="btn-secondary" id="cancelEditProfile" style="display:none;" data-i18n="cancelBtn">बंद करें</button>
         </form>
       </div>
 
@@ -113,6 +115,7 @@
 
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="seller-profile.js"></script>
 </body>
