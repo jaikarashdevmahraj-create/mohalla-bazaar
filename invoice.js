@@ -65,7 +65,14 @@ function renderInvoice(order, orderId) {
 
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html";
     return;
