@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="index.html" class="about-link">🏠 होमपेज</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="index.html" class="about-link" data-i18n="homeLink">🏠 होमपेज</a>
       </div>
     </div>
     <div class="stripe">
@@ -25,9 +26,9 @@
   </header>
 
   <div class="seller-page">
-    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
     <div id="pageContent" style="display:none;">
-      <h1>❤️ मेरी पसंद</h1>
+      <h1 data-i18n="wishlistTitle">❤️ मेरी पसंद</h1>
       <main class="grid" id="wishlistGrid" style="padding:0; margin-top:16px;"></main>
     </div>
   </div>
@@ -36,6 +37,7 @@
     <div class="modal" id="detailModal"></div>
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="wishlist.js"></script>
 </body>
