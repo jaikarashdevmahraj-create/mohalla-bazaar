@@ -10,9 +10,10 @@
 
   <header class="header no-print">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="index.html" class="about-link">🏠 होमपेज</a>
+        <button type="button" id="langToggleBtn" class="lang-btn no-print">EN</button>
+        <a href="index.html" class="about-link" data-i18n="homeLink">🏠 होमपेज</a>
       </div>
     </div>
     <div class="stripe">
@@ -28,13 +29,14 @@
     <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
 
     <div id="invoiceBox" style="display:none;">
-      <button type="button" id="printBtn" class="btn-primary no-print">🖨️ प्रिंट / PDF में सेव करें</button>
+      <button type="button" id="printBtn" class="btn-primary no-print" data-i18n="printBtn">🖨️ प्रिंट / PDF में सेव करें</button>
 
       <div class="invoice-paper" id="invoiceContent"></div>
     </div>
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="invoice.js"></script>
 </body>
-                                                   </html>
+</html>
