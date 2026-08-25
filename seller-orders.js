@@ -6,6 +6,7 @@ const { onAuthStateChanged } = window.authTools;
 let myUid = null;
 let allOrders = [];
 let activeFilter = "pending";
+let cancelTargetId = null;
 
 function statusLabel(status) {
   if (status === "pending") return { text: "⏳ पेंडिंग", cls: "warn-text" };
@@ -30,19 +31,19 @@ function renderStats() {
   document.getElementById("orderStats").innerHTML = `
     <div class="stat-card ${pending > 0 ? "warn" : ""}">
       <div class="stat-value">${pending}</div>
-      <div class="stat-label">पेंडिंग ऑर्डर</div>
+      <div class="stat-label">${window.i18n.t("pendingOrdersStat")}</div>
     </div>
     <div class="stat-card">
       <div class="stat-value">${accepted}</div>
-      <div class="stat-label">स्वीकार किए गए</div>
+      <div class="stat-label">${window.i18n.t("acceptedOrdersStat")}</div>
     </div>
     <div class="stat-card danger">
       <div class="stat-value">${cancelled}</div>
-      <div class="stat-label">रद्द किए गए</div>
+      <div class="stat-label">${window.i18n.t("cancelledOrdersStat")}</div>
     </div>
     <div class="stat-card">
       <div class="stat-value">${allOrders.length}</div>
-      <div class="stat-label">कुल ऑर्डर</div>
+      <div class="stat-label">${window.i18n.t("totalOrdersStat")}</div>
     </div>
   `;
 }
@@ -52,17 +53,23 @@ function renderOrdersList() {
   const filtered = activeFilter === "all" ? allOrders : allOrders.filter((o) => o.status === activeFilter);
 
   if (filtered.length === 0) {
-    wrap.innerHTML = `<p class="empty-note">इस श्रेणी में कोई ऑर्डर नहीं है।</p>`;
+    wrap.innerHTML = `<p class="empty-note">${window.i18n.t("noOrdersInCategory")}</p>`;
     return;
   }
 
   wrap.innerHTML = filtered.map((o) => {
     const st = statusLabel(o.status);
     const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString("hi-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+    const paymentHtml = o.paymentStatus === "buyer_marked_paid"
+      ? `<div class="payment-badge">💰 ग्राहक ने बताया है कि UPI से भुगतान कर दिया है</div>
+         <button onclick="confirmPaymentReceived('${o.id}')" class="edit-toggle-btn" style="margin-top:6px;">${window.i18n.t("confirmPayment")}</button>`
+      : (o.paymentStatus === "confirmed" ? `<div class="payment-badge paid">✅ भुगतान मिल चुका है</div>` : "");
+
     const actionsHtml = o.status === "pending" ? `
       <div class="order-actions">
-        <button onclick="acceptOrder('${o.id}')" class="btn-primary" style="margin-top:10px;">✅ स्वीकार करें</button>
-        <button onclick="cancelOrder('${o.id}')" class="delete-account-btn" style="margin-top:8px;">❌ रद्द करें</button>
+        <button onclick="acceptOrder('${o.id}')" class="btn-primary" style="margin-top:10px;">${window.i18n.t("acceptBtn")}</button>
+        <button onclick="cancelOrder('${o.id}')" class="delete-account-btn" style="margin-top:8px;">${window.i18n.t("rejectBtn")}</button>
       </div>
     ` : "";
 
@@ -82,7 +89,8 @@ function renderOrdersList() {
           ${o.note ? `<div>📝 ${o.note}</div>` : ""}
           <div class="order-date">🕒 ${date}</div>
         </div>
-        <a href="invoice.html?id=${o.id}" class="shop-link-btn" style="margin-top:8px;">🧾 इनवॉइस देखें</a>
+        <a href="invoice.html?id=${o.id}" class="shop-link-btn" style="margin-top:8px;">${window.i18n.t("viewInvoice")}</a>
+        ${paymentHtml}
         ${actionsHtml}
       </div>
     `;
@@ -93,8 +101,6 @@ window.acceptOrder = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "accepted" });
   await refresh();
 };
-
-let cancelTargetId = null;
 
 window.cancelOrder = function (id) {
   cancelTargetId = id;
@@ -124,16 +130,21 @@ async function handleCancelReasonSubmit(e) {
   await refresh();
 }
 
+window.confirmPaymentReceived = async function (id) {
+  await updateDoc(doc(db, "orders", id), { paymentStatus: "confirmed" });
+  await refresh();
+};
+
 async function refresh() {
   allOrders = await fetchOrders();
   renderStats();
   renderOrdersList();
 }
+
 document.getElementById("cancelReasonCancel").addEventListener("click", closeCancelReasonForm);
 document.getElementById("cancelReasonOverlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeCancelReasonForm(); });
 document.getElementById("cancelReasonForm").addEventListener("submit", handleCancelReasonSubmit);
 
-document.getElementById("orderTabs").addEventListener("click", (e) => {
 document.getElementById("orderTabs").addEventListener("click", (e) => {
   const btn = e.target.closest(".order-tab");
   if (!btn) return;
@@ -143,7 +154,15 @@ document.getElementById("orderTabs").addEventListener("click", (e) => {
   renderOrdersList();
 });
 
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+  refresh();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html?next=seller-orders.html";
     return;
@@ -153,7 +172,6 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("pageContent").style.display = "block";
   await refresh();
 
-  // ===== पेज खुला हो तो नया ऑर्डर आते ही अपने आप दिख जाए =====
   const q = query(collection(db, "orders"), where("sellerId", "==", myUid));
   onSnapshot(q, () => {
     refresh();
