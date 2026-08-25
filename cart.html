@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="index.html" class="about-link">🏠 होमपेज</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="index.html" class="about-link" data-i18n="homeLink">🏠 होमपेज</a>
       </div>
     </div>
     <div class="stripe">
@@ -26,49 +27,56 @@
 
   <div class="seller-page">
 
-    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
 
     <div id="pageContent" style="display:none;">
 
-      <h1>🛒 आपका कार्ट</h1>
+      <h1 data-i18n="cartTitle">🛒 आपका कार्ट</h1>
       <div id="cartItemsList"></div>
 
       <div class="section-box" id="cartSummary" style="display:none;">
+        <label>कूपन कोड (वैकल्पिक)</label>
+        <div class="coupon-row">
+          <input type="text" id="couponInput" placeholder="जैसे: WELCOME50" style="text-transform:uppercase;">
+          <button type="button" id="applyCouponBtn" class="edit-toggle-btn" style="margin-top:0; width:auto; padding:11px 16px;">लगाएँ</button>
+        </div>
+        <p id="couponMsg" class="premium-hint"></p>
+
         <div class="cart-total-row">
-          <span>कुल राशि</span>
+          <span data-i18n="cartTotal">कुल राशि</span>
           <b id="cartTotalAmount">₹0</b>
         </div>
-        <button type="button" class="btn-primary" id="checkoutBtn">आगे बढ़ें (डिलीवरी जानकारी भरें)</button>
+        <button type="button" class="btn-primary" id="checkoutBtn" data-i18n="checkoutBtn">आगे बढ़ें (डिलीवरी जानकारी भरें)</button>
       </div>
 
     </div>
 
   </div>
 
-  <!-- ===== चेकआउट फॉर्म ===== -->
   <div class="modal-overlay" id="checkoutOverlay">
     <div class="modal">
-      <h2>डिलीवरी की जानकारी भरें</h2>
+      <h2 data-i18n="checkoutTitle">डिलीवरी की जानकारी भरें</h2>
       <p class="order-product-name" id="checkoutSummary"></p>
       <form id="checkoutForm">
-        <label>आपका नाम</label>
+        <label data-i18n="checkoutName">आपका नाम</label>
         <input type="text" id="checkoutName" required placeholder="जैसे: रमेश कुमार">
 
-        <label>मोबाइल नंबर</label>
+        <label data-i18n="checkoutPhone">मोबाइल नंबर</label>
         <input type="tel" id="checkoutPhone" required placeholder="जैसे: 98765 43210">
 
-        <label>डिलीवरी पता</label>
+        <label data-i18n="checkoutAddress">डिलीवरी पता</label>
         <input type="text" id="checkoutAddress" required placeholder="पूरा पता लिखें">
 
-        <label>कोई खास सूचना (वैकल्पिक)</label>
+        <label data-i18n="checkoutNote">कोई खास सूचना (वैकल्पिक)</label>
         <input type="text" id="checkoutNote" placeholder="जैसे: शाम 5 बजे के बाद घर पर मिलूंगा">
 
-        <button type="submit" class="btn-primary" id="checkoutSubmitBtn">सभी ऑर्डर भेजें</button>
-        <button type="button" class="btn-secondary" id="cancelCheckout">रद्द करें</button>
+        <button type="submit" class="btn-primary" id="checkoutSubmitBtn" data-i18n="checkoutSubmit">सभी ऑर्डर भेजें</button>
+        <button type="button" class="btn-secondary" id="cancelCheckout" data-i18n="cancelBtn">रद्द करें</button>
       </form>
     </div>
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="cart.js"></script>
 </body>
