@@ -51,8 +51,8 @@ function renderWishlist() {
     grid.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-emoji">💔</div>
-        <p class="empty-state-title">अभी कुछ भी पसंद में नहीं है</p>
-        <p class="empty-state-sub"><a href="index.html" style="color:#1B2A4A;">होमपेज पर जाकर सामान पसंद करें</a></p>
+        <p class="empty-state-title">${window.i18n.t("wishlistEmpty")}</p>
+        <p class="empty-state-sub"><a href="index.html" style="color:#1B2A4A;">${window.i18n.t("wishlistEmptyLink")}</a></p>
       </div>`;
     return;
   }
@@ -98,8 +98,8 @@ function openDetail(item) {
       </div>
     </div>
 
-    <a href="index.html" class="shop-link-btn">🏠 होमपेज पर जाकर ऑर्डर करें</a>
-    <button class="btn-secondary" id="closeDetail">बंद करें</button>
+    <a href="index.html" class="shop-link-btn">${window.i18n.t("orderFromHome")}</a>
+    <button class="btn-secondary" id="closeDetail">${window.i18n.t("closeBtn")}</button>
   `;
   document.getElementById("detailOverlay").classList.add("show");
   document.getElementById("closeDetail").addEventListener("click", () => {
@@ -111,7 +111,15 @@ document.getElementById("detailOverlay").addEventListener("click", (e) => {
   if (e.target === e.currentTarget) document.getElementById("detailOverlay").classList.remove("show");
 });
 
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+  renderWishlist();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html?next=wishlist.html";
     return;
