@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="seller.html" class="about-link">📊 डैशबोर्ड</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="seller.html" class="about-link" data-i18n="dashboardLink">📊 डैशबोर्ड</a>
       </div>
     </div>
     <div class="stripe">
@@ -26,33 +27,29 @@
 
   <div class="seller-page">
 
-    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
 
     <div id="pageContent" style="display:none;">
 
-      <h1>मेरे ऑर्डर</h1>
-      <p class="seller-note">यहाँ आपकी दुकान के सारे ऑर्डर दिखेंगे — स्वीकार करें या रद्द करें।</p>
+      <h1 data-i18n="myOrdersTitle">मेरे ऑर्डर</h1>
+      <p class="seller-note" data-i18n="ordersSubtitle">यहाँ आपकी दुकान के सारे ऑर्डर दिखेंगे — स्वीकार करें या रद्द करें।</p>
 
-      <!-- ===== ऑर्डर के आंकड़े ===== -->
       <div class="stat-grid" id="orderStats"></div>
 
-      <!-- ===== फ़िल्टर टैब ===== -->
       <div class="order-tabs" id="orderTabs">
-        <button type="button" class="order-tab active" data-filter="pending">⏳ पेंडिंग</button>
-        <button type="button" class="order-tab" data-filter="accepted">✅ स्वीकार</button>
-        <button type="button" class="order-tab" data-filter="cancelled">❌ रद्द</button>
-        <button type="button" class="order-tab" data-filter="all">सभी</button>
+        <button type="button" class="order-tab active" data-filter="pending" data-i18n="tabPending">⏳ पेंडिंग</button>
+        <button type="button" class="order-tab" data-filter="accepted" data-i18n="tabAccepted">✅ स्वीकार</button>
+        <button type="button" class="order-tab" data-filter="cancelled" data-i18n="tabCancelled">❌ रद्द</button>
+        <button type="button" class="order-tab" data-filter="all" data-i18n="tabAll">सभी</button>
       </div>
 
-      <!-- ===== ऑर्डर लिस्ट ===== -->
       <div id="ordersList"></div>
 
-      <!-- ===== रद्द करने का कारण पूछने वाला पॉपअप ===== -->
       <div class="modal-overlay" id="cancelReasonOverlay">
         <div class="modal">
-          <h2>रद्द करने का कारण</h2>
+          <h2 data-i18n="cancelReasonTitle">रद्द करने का कारण</h2>
           <form id="cancelReasonForm">
-            <label>कारण चुनें</label>
+            <label data-i18n="reasonSelect">कारण चुनें</label>
             <select id="cancelReasonSelect">
               <option value="स्टॉक खत्म हो गया">स्टॉक खत्म हो गया</option>
               <option value="डिलीवरी क्षेत्र से बाहर">डिलीवरी क्षेत्र से बाहर</option>
@@ -61,11 +58,11 @@
               <option value="अन्य">अन्य कारण</option>
             </select>
 
-            <label>अतिरिक्त जानकारी (वैकल्पिक)</label>
+            <label data-i18n="reasonExtra">अतिरिक्त जानकारी (वैकल्पिक)</label>
             <input type="text" id="cancelReasonNote" placeholder="कोई और जानकारी लिखें">
 
-            <button type="submit" class="delete-account-btn" style="margin-top:16px;">रद्द करना पक्का करें</button>
-            <button type="button" class="btn-secondary" id="cancelReasonCancel">वापस जाएँ</button>
+            <button type="submit" class="delete-account-btn" style="margin-top:16px;" data-i18n="confirmCancel">रद्द करना पक्का करें</button>
+            <button type="button" class="btn-secondary" id="cancelReasonCancel" data-i18n="goBack">वापस जाएँ</button>
           </form>
         </div>
       </div>
@@ -74,6 +71,7 @@
 
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="seller-orders.js"></script>
 </body>
