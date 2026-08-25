@@ -1,10 +1,11 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { doc, getDoc, setDoc, collection, addDoc } = window.firebaseTools;
+const { doc, getDoc, setDoc, collection, addDoc, getDocs, query, where } = window.firebaseTools;
 const { onAuthStateChanged } = window.authTools;
 
 let myUid = null;
 let cartItems = [];
+let appliedDiscount = 0;
 
 async function fetchCart() {
   const snap = await getDoc(doc(db, "carts", myUid));
@@ -20,7 +21,7 @@ function renderCart() {
   const summary = document.getElementById("cartSummary");
 
   if (cartItems.length === 0) {
-    wrap.innerHTML = `<p class="empty-note">आपका कार्ट खाली है। <a href="index.html" style="color:#1B2A4A;">होमपेज पर जाकर सामान जोड़ें</a>।</p>`;
+    wrap.innerHTML = `<p class="empty-note">${window.i18n.t("cartEmpty")} <a href="index.html" style="color:#1B2A4A;">${window.i18n.t("cartEmptyLink")}</a></p>`;
     summary.style.display = "none";
     return;
   }
@@ -45,7 +46,7 @@ function renderCart() {
     </div>
   `).join("");
 
-  const total = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = Math.max(0, cartItems.reduce((s, i) => s + i.price * i.qty, 0) - appliedDiscount);
   document.getElementById("cartTotalAmount").textContent = `₹${total}`;
   summary.style.display = "block";
 }
@@ -62,9 +63,31 @@ window.removeItem = async function (idx) {
   renderCart();
 };
 
+async function applyCoupon() {
+  const code = document.getElementById("couponInput").value.trim().toUpperCase();
+  const msg = document.getElementById("couponMsg");
+  if (!code) return;
+
+  const q = query(collection(db, "coupons"), where("code", "==", code));
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    msg.textContent = "❌ यह कूपन कोड मान्य नहीं है।";
+    msg.style.color = "#C0392B";
+    appliedDiscount = 0;
+  } else {
+    const coupon = snap.docs[0].data();
+    appliedDiscount = coupon.amount;
+    msg.textContent = `✅ ₹${coupon.amount} की छूट लागू हो गई!`;
+    msg.style.color = "#2E7D4F";
+  }
+  renderCart();
+}
+
+document.getElementById("applyCouponBtn").addEventListener("click", applyCoupon);
+
 async function openCheckout() {
-  const total = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
-  document.getElementById("checkoutSummary").textContent = `${cartItems.length} सामान · कुल ₹${total}`;
+  const total = Math.max(0, cartItems.reduce((s, i) => s + i.price * i.qty, 0) - appliedDiscount);
+  document.getElementById("checkoutSummary").textContent = `${cartItems.length} सामान · कुल ₹${total}${appliedDiscount ? ` (₹${appliedDiscount} छूट)` : ""}`;
 
   try {
     const snap = await getDoc(doc(db, "buyers", myUid));
@@ -96,7 +119,6 @@ async function handleCheckoutSubmit(e) {
   const note = document.getElementById("checkoutNote").value;
 
   try {
-    // हर विक्रेता के लिए अलग-अलग ऑर्डर बनाना, ताकि हर सेलर सिर्फ़ अपना ऑर्डर देखे
     for (const item of cartItems) {
       await addDoc(collection(db, "orders"), {
         productId: item.productId,
@@ -119,6 +141,7 @@ async function handleCheckoutSubmit(e) {
     }
 
     cartItems = [];
+    appliedDiscount = 0;
     await saveCart();
     alert("✅ आपके सभी ऑर्डर भेज दिए गए हैं! विक्रेताओं के स्वीकार करने का इंतज़ार करें।");
     closeCheckout();
@@ -137,7 +160,15 @@ document.getElementById("cancelCheckout").addEventListener("click", closeCheckou
 document.getElementById("checkoutOverlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeCheckout(); });
 document.getElementById("checkoutForm").addEventListener("submit", handleCheckoutSubmit);
 
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+  renderCart();
+});
+
 onAuthStateChanged(auth, async (user) => {
+  window.i18n.applyTranslations();
   if (!user) {
     window.location.href = "login.html?next=cart.html";
     return;
