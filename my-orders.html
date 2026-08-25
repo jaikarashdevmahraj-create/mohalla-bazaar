@@ -10,9 +10,10 @@
 
   <header class="header">
     <div class="header-top">
-      <div class="logo">🏪 <span>मोहल्ला बाज़ार</span></div>
+      <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
-        <a href="index.html" class="about-link">🏠 होमपेज</a>
+        <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="index.html" class="about-link" data-i18n="homeLink">🏠 होमपेज</a>
       </div>
     </div>
     <div class="stripe">
@@ -26,47 +27,51 @@
 
   <div class="seller-page">
 
-    <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
 
     <div id="pageContent" style="display:none;">
 
-      <h1>मेरे ऑर्डर</h1>
-      <p class="seller-note">आपका अकाउंट: <b id="userEmailLabel"></b> · <a href="#" id="logoutLink">लॉगआउट</a></p>
+      <h1 data-i18n="myOrdersTitle">मेरे ऑर्डर</h1>
+      <p class="seller-note">आपका अकाउंट: <b id="userEmailLabel"></b> · <a href="#" id="logoutLink" data-i18n="logoutLabel">लॉगआउट</a></p>
 
-      <button type="button" class="edit-toggle-btn" id="editProfileToggleBtn">✏️ मेरी जानकारी (नाम, फोन, पता) बदलें</button>
+      <button type="button" class="edit-toggle-btn" id="editProfileToggleBtn" data-i18n="editMyInfo">✏️ मेरी जानकारी (नाम, फोन, पता) बदलें</button>
 
       <div class="section-box" id="buyerProfileBox" style="display:none;">
-        <h3>मेरी जानकारी</h3>
+        <h3 data-i18n="myInfoTitle">मेरी जानकारी</h3>
         <form id="buyerProfileForm">
-          <label>आपका नाम</label>
+          <label data-i18n="yourName">आपका नाम</label>
           <input type="text" id="buyerName" required placeholder="जैसे: रमेश कुमार">
 
-          <label>मोबाइल नंबर</label>
+          <label data-i18n="mobileNumber">मोबाइल नंबर</label>
           <input type="tel" id="buyerPhone" required placeholder="जैसे: 98765 43210">
 
-          <label>आपका डिफ़ॉल्ट पता</label>
+          <label data-i18n="defaultAddress">आपका डिफ़ॉल्ट पता</label>
           <input type="text" id="buyerAddress" required placeholder="पूरा पता लिखें">
 
-          <button type="submit" class="btn-primary" id="buyerProfileSubmitBtn">सेव करें</button>
+          <label>पते को नाम दें (जैसे: घर, ऑफ़िस)</label>
+          <input type="text" id="addressLabel" placeholder="जैसे: घर">
+
+          <button type="submit" class="btn-primary" id="buyerProfileSubmitBtn">सेव करें (नए पते के रूप में जोड़ें)</button>
+
+          <div id="savedAddressesList" style="margin-top:14px;"></div>
         </form>
       </div>
 
       <div class="order-tabs" id="orderTabs">
-        <button type="button" class="order-tab active" data-filter="all">सभी</button>
-        <button type="button" class="order-tab" data-filter="pending">⏳ पेंडिंग</button>
-        <button type="button" class="order-tab" data-filter="accepted">✅ स्वीकार</button>
-        <button type="button" class="order-tab" data-filter="cancelled">❌ रद्द</button>
+        <button type="button" class="order-tab active" data-filter="all" data-i18n="tabAll">सभी</button>
+        <button type="button" class="order-tab" data-filter="pending" data-i18n="tabPending">⏳ पेंडिंग</button>
+        <button type="button" class="order-tab" data-filter="accepted" data-i18n="tabAccepted">✅ स्वीकार</button>
+        <button type="button" class="order-tab" data-filter="cancelled" data-i18n="tabCancelled">❌ रद्द</button>
       </div>
 
       <div id="ordersList"></div>
 
-      <!-- ===== रिव्यू लिखने वाला फॉर्म ===== -->
       <div class="modal-overlay" id="reviewOverlay">
         <div class="modal">
-          <h2>अपना अनुभव बताएं</h2>
+          <h2 data-i18n="yourExperience">अपना अनुभव बताएं</h2>
           <p class="order-product-name" id="reviewProductName"></p>
           <form id="reviewForm">
-            <label>रेटिंग दें</label>
+            <label data-i18n="ratingLabel">रेटिंग दें</label>
             <div class="star-picker" id="starPicker">
               <span data-star="1">⭐</span>
               <span data-star="2">⭐</span>
@@ -76,11 +81,11 @@
             </div>
             <input type="hidden" id="reviewRating" value="0">
 
-            <label>अपना अनुभव लिखें (वैकल्पिक)</label>
+            <label data-i18n="experienceLabel">अपना अनुभव लिखें (वैकल्पिक)</label>
             <input type="text" id="reviewComment" placeholder="जैसे: सामान अच्छा और समय पर मिला">
 
-            <button type="submit" class="btn-primary" id="reviewSubmitBtn">रिव्यू भेजें</button>
-            <button type="button" class="btn-secondary" id="cancelReview">रद्द करें</button>
+            <button type="submit" class="btn-primary" id="reviewSubmitBtn" data-i18n="sendReview">रिव्यू भेजें</button>
+            <button type="button" class="btn-secondary" id="cancelReview" data-i18n="cancelBtn">रद्द करें</button>
           </form>
         </div>
       </div>
@@ -89,6 +94,7 @@
 
   </div>
 
+  <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="my-orders.js"></script>
 </body>
