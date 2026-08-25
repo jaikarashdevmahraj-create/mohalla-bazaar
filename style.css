@@ -32,6 +32,16 @@ body {
 .header-links {
   display: flex;
   gap: 6px;
+  align-items: center;
+}
+
+.menu-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 22px;
+  padding: 4px 8px;
+  margin-right: 4px;
 }
 
 .about-link, .seller-link {
@@ -49,6 +59,16 @@ body {
 .about-link:active, .seller-link:active {
   background: rgba(240,184,77,0.15);
   transform: scale(0.96);
+}
+
+.lang-btn {
+  background: transparent;
+  border: 1px solid rgba(240,184,77,0.6);
+  color: #F0B84D;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .location {
@@ -78,6 +98,21 @@ body {
   box-shadow: 0 0 0 2px #F0B84D;
 }
 
+.sort-row {
+  padding: 0 16px 12px;
+}
+
+.sort-row select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1B2A4A;
+  font-weight: 600;
+}
+
 .stripe {
   display: flex;
   height: 6px;
@@ -85,6 +120,82 @@ body {
 
 .stripe span {
   flex: 1;
+}
+
+/* ===== साइड मेन्यू ===== */
+.side-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,16,30,0.5);
+  z-index: 40;
+}
+
+.side-menu-overlay.show {
+  display: block;
+}
+
+.side-menu {
+  background: #FAF5EA;
+  width: 78%;
+  max-width: 300px;
+  height: 100%;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  animation: slideInLeft 0.2s ease;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.side-menu-header {
+  background: #1B2A4A;
+  color: white;
+  padding: 18px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.close-menu-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+}
+
+.side-menu-item {
+  display: block;
+  padding: 14px 18px;
+  color: #1A1A1A;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(27,42,74,0.08);
+}
+
+.side-menu-item:active {
+  background: rgba(27,42,74,0.06);
+}
+
+/* ===== स्वागत बैनर ===== */
+.welcome-banner {
+  padding: 14px 16px 6px;
+}
+
+.welcome-greeting {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1B2A4A;
+}
+
+.welcome-sub {
+  font-size: 12px;
+  color: rgba(26,26,26,0.55);
+  margin-top: 2px;
 }
 
 /* ===== श्रेणियाँ (categories) ===== */
@@ -95,6 +206,16 @@ body {
   padding: 12px;
   background: #F5EFDF;
   border-bottom: 1px solid rgba(27,42,74,0.1);
+  scroll-behavior: smooth;
+}
+
+.categories::-webkit-scrollbar {
+  height: 4px;
+}
+
+.categories::-webkit-scrollbar-thumb {
+  background: rgba(27,42,74,0.15);
+  border-radius: 4px;
 }
 
 .cat-btn {
@@ -200,9 +321,88 @@ body {
   border-radius: 6px;
 }
 
+.card-featured-tag {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #F0B84D;
+  color: #1B2A4A;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.wishlist-heart {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== स्केलेटन लोडिंग ===== */
+.skeleton-card {
+  cursor: default;
+}
+
+.skeleton-img {
+  width: 100%;
+  height: 110px;
+  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ===== खाली स्क्रीन ===== */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.empty-state-emoji {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.empty-state-title {
+  font-weight: 700;
+  color: #1B2A4A;
+  font-size: 15px;
+  margin: 0;
+}
+
+.empty-state-sub {
+  font-size: 12px;
+  color: rgba(26,26,26,0.5);
+  margin-top: 4px;
 }
 
 /* ===== फ्लोटिंग बटन ===== */
@@ -297,6 +497,13 @@ body {
   box-shadow: 0 0 0 2px #1B2A4A;
 }
 
+.order-product-name {
+  font-size: 13px;
+  color: #A8331F;
+  font-weight: 600;
+  margin-top: -4px;
+}
+
 .btn-primary {
   width: 100%;
   background: linear-gradient(160deg, #F0B84D, #DE9A2C);
@@ -325,6 +532,27 @@ body {
   margin-top: 6px;
 }
 
+.btn-secondary-outline {
+  flex: 1;
+  background: white;
+  border: 1.5px solid #1B2A4A;
+  color: #1B2A4A;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.detail-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.detail-btn-row .btn-primary {
+  flex: 1;
+}
+
 .seller-box {
   display: flex;
   align-items: center;
@@ -348,6 +576,14 @@ body {
   box-shadow: 0 2px 6px rgba(18,32,61,0.3);
 }
 
+.seller-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #1B2A4A;
+}
+
 .seller-info {
   flex: 1;
 }
@@ -360,6 +596,75 @@ body {
 .seller-area {
   font-size: 11px;
   color: rgba(26,26,26,0.5);
+}
+
+/* ===== गैलरी / ज़ूम ===== */
+.gallery-main-wrap {
+  position: relative;
+}
+
+.gallery-main-wrap img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #EDE4D3;
+  cursor: zoom-in;
+}
+
+.gallery-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.2);
+}
+
+.gallery-dot.active {
+  background: #F0B84D;
+}
+
+.zoom-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-overlay.show {
+  display: flex;
+}
+
+.zoom-overlay img {
+  max-width: 95%;
+  max-height: 85%;
+  object-fit: contain;
+}
+
+.zoom-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
 }
 
 /* ===== About पेज ===== */
@@ -403,7 +708,7 @@ body {
   margin: 0 0 6px;
 }
 
-/* ===== विक्रेता डैशबोर्ड ===== */
+/* ===== विक्रेता डैशबोर्ड / seller-page (साझा) ===== */
 .seller-page {
   max-width: 480px;
   margin: 0 auto;
@@ -469,6 +774,32 @@ body {
   color: #1B2A4A;
   font-size: 15px;
   margin: 0 0 10px;
+}
+
+.section-box label {
+  display: block;
+  font-size: 12px;
+  color: rgba(26,26,26,0.6);
+  margin-top: 12px;
+}
+
+.section-box input,
+.section-box select {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(27,42,74,0.15);
+  font-family: inherit;
+  font-size: 14px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.section-box input:focus,
+.section-box select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #1B2A4A;
 }
 
 .empty-note {
@@ -582,6 +913,10 @@ body {
   background: #FDECEC;
 }
 
+.mini-btn.star-active {
+  background: #F0B84D;
+}
+
 /* ===== छोटी स्क्रीन ===== */
 @media (max-width: 340px) {
   .grid {
@@ -685,6 +1020,23 @@ body {
   margin-left: 6px;
 }
 
+.rating-badge {
+  display: inline-block;
+  background: #FFF6E5;
+  color: #B8860B;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin: 8px 14px 0;
+}
+
+.rating-none {
+  background: #F5EFDF;
+  color: rgba(26,26,26,0.4);
+  font-weight: 500;
+}
+
 .locked-box {
   background: #F5EFDF;
   border-radius: 10px;
@@ -731,11 +1083,7 @@ body {
   margin-left: 4px;
 }
 
-.mini-btn.star-active {
-  background: #F0B84D;
-}
-
-/* ===== फोटो अपलोड बटन ===== */
+/* ===== फोटो अपलोड ===== */
 .file-input {
   display: none;
 }
@@ -786,582 +1134,6 @@ body {
   font-size: 11px;
 }
 
-/* ===== दुकान की स्टोरफ्रंट प्रीव्यू ===== */
-.storefront-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 3px 12px rgba(27,42,74,0.1);
-  margin-top: 10px;
-}
-
-.storefront-empty {
-  padding: 20px;
-  text-align: center;
-  font-size: 13px;
-  color: rgba(26,26,26,0.6);
-}
-
-/* फोटो के नीचे गहरा शेड, ताकि नाम हमेशा साफ़ पढ़ने लायक रहे */
-.storefront-banner {
-  height: 130px;
-  background-size: cover;
-  background-position: center;
-  background-color: #1B2A4A;
-  position: relative;
-}
-
-.storefront-banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0) 100%);
-}
-
-.storefront-body {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 0 14px;
-  margin-top: -58px;
-  position: relative;
-  z-index: 2;
-}
-
-.storefront-logo {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: 3px solid white;
-  object-fit: cover;
-  background: #EDE4D3;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.storefront-info {
-  padding-bottom: 4px;
-}
-
-.storefront-name {
-  font-weight: 800;
-  font-size: 16px;
-  color: white;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-}
-
-.storefront-owner, .storefront-area {
-  font-size: 12px;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-}
-
-.storefront-desc {
-  font-size: 13px;
-  color: #333;
-  padding: 10px 14px 0;
-  line-height: 1.6;
-}
-
-.storefront-stats {
-  display: flex;
-  justify-content: space-around;
-  padding: 14px;
-  margin-top: 8px;
-  border-top: 1px solid rgba(27,42,74,0.08);
-}
-
-.storefront-stats div {
-  text-align: center;
-}
-
-.storefront-stats b {
-  display: block;
-  font-size: 14px;
-  color: #1B2A4A;
-}
-
-.storefront-stats span {
-  font-size: 10px;
-  color: rgba(26,26,26,0.5);
-}
-
-.storefront-contact {
-  text-align: center;
-  background: #F5EFDF;
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1B2A4A;
-}
-
-/* ===== होमपेज कार्ड पर फीचर्ड टैग ===== */
-.card-featured-tag {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #F0B84D;
-  color: #1B2A4A;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 8px;
-}
-
-/* ===== दुकानदार का लोगो (गोल फोटो) पॉपअप में ===== */
-.seller-avatar-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #1B2A4A;
-}
-
-/* ===== "दुकान देखें" बटन ===== */
-.shop-link-btn {
-  display: block;
-  text-align: center;
-  width: 100%;
-  background: transparent;
-  color: #1B2A4A;
-  border: 1px solid rgba(27,42,74,0.25);
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  margin-top: 8px;
-  box-sizing: border-box;
-}
-
-.form-subheading {
-  color: #1B2A4A;
-  font-size: 14px;
-  margin: 18px 0 4px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(27,42,74,0.15);
-}
-
-.storefront-address-box {
-  font-size: 12px;
-  color: #333;
-  background: #F5EFDF;
-  padding: 8px 14px;
-  margin-top: 8px;
-}
-
-/* ===== section-box के अंदर वाले फॉर्म को ठीक से दिखाना ===== */
-.section-box label {
-  display: block;
-  font-size: 12px;
-  color: rgba(26,26,26,0.6);
-  margin-top: 12px;
-}
-
-.section-box input,
-.section-box select {
-  display: block;
-  width: 100%;
-  padding: 11px;
-  border-radius: 10px;
-  border: 1px solid rgba(27,42,74,0.15);
-  font-family: inherit;
-  font-size: 14px;
-  margin-top: 4px;
-  box-sizing: border-box;
-}
-
-.section-box input:focus,
-.section-box select:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #1B2A4A;
-}
-
-/* ===== सेव होने पर दिखने वाला हरा मैसेज ===== */
-.success-banner {
-  display: none;
-  background: #E7F5EC;
-  color: #2E7D4F;
-  border: 1px solid #B7E4C7;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 14px;
-}
-
-.success-banner.show {
-  display: block;
-}
-
-.edit-toggle-btn {
-  width: 100%;
-  background: white;
-  border: 1px solid rgba(27,42,74,0.2);
-  color: #1B2A4A;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  margin-top: 14px;
-  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
-}
-
-.shop-id-badge {
-  margin: 10px 14px 0;
-  background: #F5EFDF;
-  color: #1B2A4A;
-  font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  display: inline-block;
-}
-.order-product-name {
-  font-size: 13px;
-  color: #A8331F;
-  font-weight: 600;
-  margin-top: -4px;
-}
-.shop-id-badge b {
-  letter-spacing: 0.5px;
-  color: #A8331F;
-}
-
-.delete-account-btn {
-  width: 100%;
-  background: #FDECEC;
-  border: 1px solid rgba(192,57,43,0.3);
-  color: #C0392B;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 13px;
-  margin-top: 10px;
-  }
-.auth-tabs {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.auth-tab {
-  flex: 1;
-  background: white;
-  border: 1px solid rgba(27,42,74,0.15);
-  color: #1B2A4A;
-  padding: 11px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.auth-tab.active {
-  background: #1B2A4A;
-  color: white;
-  border-color: #1B2A4A;
-}
-
-.auth-note {
-  font-size: 11px;
-  color: rgba(26,26,26,0.45);
-  text-align: center;
-  margin-top: 14px;
-}
-.order-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  margin-top: 16px;
-}
-
-.order-tab {
-  flex: 0 0 auto;
-  background: white;
-  border: 1px solid rgba(27,42,74,0.15);
-  color: #1B2A4A;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.order-tab.active {
-  background: #1B2A4A;
-  color: white;
-  border-color: #1B2A4A;
-}
-
-.order-card {
-  margin-top: 12px;
-}
-
-.order-card-top {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.order-card-top img {
-  width: 60px;
-  height: 60px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: #EDE4D3;
-  flex-shrink: 0;
-}
-
-.order-buyer-info {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(27,42,74,0.15);
-  font-size: 12px;
-  color: #333;
-  line-height: 1.8;
-}
-
-.order-date {
-  color: rgba(26,26,26,0.4);
-  font-size: 11px;
-}
-.menu-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 22px;
-  padding: 4px 8px;
-  margin-right: 4px;
-}
-
-.side-menu-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(10,16,30,0.5);
-  z-index: 40;
-}
-
-.side-menu-overlay.show {
-  display: block;
-}
-
-.side-menu {
-  background: #FAF5EA;
-  width: 78%;
-  max-width: 300px;
-  height: 100%;
-  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
-  animation: slideInLeft 0.2s ease;
-}
-
-@keyframes slideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-.side-menu-header {
-  background: #1B2A4A;
-  color: white;
-  padding: 18px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 800;
-  font-size: 16px;
-}
-
-.close-menu-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 18px;
-}
-
-.side-menu-item {
-  display: block;
-  padding: 14px 18px;
-  color: #1A1A1A;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  border-bottom: 1px solid rgba(27,42,74,0.08);
-}
-
-.side-menu-item:active {
-  background: rgba(27,42,74,0.06);
-}
-.detail-btn-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.btn-secondary-outline {
-  flex: 1;
-  background: white;
-  border: 1.5px solid #1B2A4A;
-  color: #1B2A4A;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.detail-btn-row .btn-primary {
-  flex: 1;
-}
-.cart-total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 15px;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed rgba(27,42,74,0.15);
-  margin-bottom: 4px;
-}
-
-.cart-total-row b {
-  color: #A8331F;
-  font-size: 20px;
-}
-
-.cart-qty-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(27,42,74,0.15);
-}
-
-.qty-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid rgba(27,42,74,0.2);
-  background: white;
-  color: #1B2A4A;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.qty-value {
-  font-weight: 700;
-  min-width: 20px;
-  text-align: center;
-}
-
-.cart-item-total {
-  flex: 1;
-  text-align: right;
-  font-size: 13px;
-  color: #A8331F;
-  font-weight: 700;
-}
-#buyerProfileBox {
-  margin-top: 12px;
-}
-/* ===== स्वागत बैनर ===== */
-.welcome-banner {
-  padding: 14px 16px 6px;
-}
-
-.welcome-greeting {
-  font-size: 17px;
-  font-weight: 800;
-  color: #1B2A4A;
-}
-
-.welcome-sub {
-  font-size: 12px;
-  color: rgba(26,26,26,0.55);
-  margin-top: 2px;
-}
-
-/* ===== स्केलेटन लोडिंग ===== */
-.skeleton-card {
-  cursor: default;
-}
-
-.skeleton-img {
-  width: 100%;
-  height: 110px;
-  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
-}
-
-.skeleton-line {
-  height: 10px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #EDE4D3 25%, #F5EFDF 37%, #EDE4D3 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
-}
-
-/* ===== खाली स्क्रीन (कुछ न मिलने पर) ===== */
-.empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 50px 20px;
-}
-
-.empty-state-emoji {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-.empty-state-title {
-  font-weight: 700;
-  color: #1B2A4A;
-  font-size: 15px;
-  margin: 0;
-}
-
-.empty-state-sub {
-  font-size: 12px;
-  color: rgba(26,26,26,0.5);
-  margin-top: 4px;
-}
-.rating-badge {
-  display: inline-block;
-  background: #FFF6E5;
-  color: #B8860B;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 8px;
-  margin: 8px 14px 0;
-}
-
-.rating-none {
-  background: #F5EFDF;
-  color: rgba(26,26,26,0.4);
-  font-weight: 500;
-}
-
-.star-picker {
-  display: flex;
-  gap: 6px;
-  font-size: 30px;
-  margin-top: 6px;
-}
-
-.star-picker span {
-  cursor: pointer;
-  opacity: 0.25;
-  filter: grayscale(1);
-}
-
-.star-picker span.star-selected {
-  opacity: 1;
-  filter: grayscale(0);
-}
 .mini-img-box {
   position: relative;
   display: inline-block;
@@ -1385,210 +1157,40 @@ body {
   margin-top: 6px;
 }
 
-.gallery-main-wrap {
-  position: relative;
-}
-
-.gallery-main-wrap img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 12px;
-  background: #EDE4D3;
-  cursor: zoom-in;
-}
-
-.gallery-dots {
-  position: absolute;
-  bottom: 8px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-
-.gallery-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.6);
-  border: 1px solid rgba(0,0,0,0.2);
-}
-
-.gallery-dot.active {
-  background: #F0B84D;
-}
-
-.zoom-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.92);
-  z-index: 50;
-  align-items: center;
-  justify-content: center;
-}
-
-.zoom-overlay.show {
-  display: flex;
-}
-
-.zoom-overlay img {
-  max-width: 95%;
-  max-height: 85%;
-  object-fit: contain;
-}
-
-.zoom-close-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255,255,255,0.15);
-  color: white;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 18px;
-}
-.notify-link {
-  position: relative;
-}
-
-.notify-badge {
-  display: inline-block;
-  background: #C0392B;
-  color: white;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 20px;
-  margin-left: 6px;
-}
-.sort-row {
-  padding: 0 16px 12px;
-}
-
-.sort-row select {
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 13px;
-  font-family: inherit;
-  color: #1B2A4A;
-  font-weight: 600;
-}
-.wishlist-heart {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  background: rgba(255,255,255,0.9);
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.invoice-paper {
+/* ===== दुकान की स्टोरफ्रंट प्रीव्यू ===== */
+.storefront-card {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(27,42,74,0.1);
+  margin-top: 10px;
+}
+
+.storefront-empty {
   padding: 20px;
-  margin-top: 16px;
-  box-shadow: 0 2px 8px rgba(27,42,74,0.08);
-}
-
-.invoice-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid #1B2A4A;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
-}
-
-.invoice-logo {
-  font-weight: 800;
-  color: #1B2A4A;
-  font-size: 16px;
-}
-
-.invoice-id {
-  font-size: 12px;
-  color: rgba(26,26,26,0.5);
-}
-
-.invoice-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 14px;
-}
-
-.invoice-section {
-  margin-bottom: 14px;
-}
-
-.invoice-section h4 {
-  font-size: 12px;
-  color: rgba(26,26,26,0.5);
-  margin: 0 0 3px;
-  text-transform: uppercase;
-}
-
-.invoice-section p {
-  font-size: 13px;
-  margin: 0;
-  line-height: 1.6;
-}
-
-.invoice-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin: 14px 0;
-}
-
-.invoice-table th, .invoice-table td {
-  text-align: left;
-  padding: 8px 6px;
-  border-bottom: 1px solid rgba(27,42,74,0.1);
-}
-
-.invoice-total {
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  padding-top: 8px;
-  border-top: 2px solid #1B2A4A;
-}
-
-.invoice-total b {
-  color: #A8331F;
-}
-
-.invoice-footer-note {
   text-align: center;
-  font-size: 10px;
-  color: rgba(26,26,26,0.4);
-  margin-top: 20px;
+  font-size: 13px;
+  color: rgba(26,26,26,0.6);
 }
 
-@media print {
-  .no-print { display: none !important; }
-  body { background: white; }
-  .invoice-paper { box-shadow: none; margin: 0; }
+.storefront-banner {
+  height: 130px;
+  background-size: cover;
+  background-position: center;
+  background-color: #1B2A4A;
+  position: relative;
 }
-.cancel-reason-box {
-  background: #FDECEC;
-  color: #C0392B;
-  font-size: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  margin-top: 8px;
+
+.storefront-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0) 100%);
 }
+
+.storefront-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 0 14px;
+  
