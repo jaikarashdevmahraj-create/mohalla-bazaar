@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>चैट — मोहल्ला बाज़ार</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">🏪 <span id="chatWithName">चैट</span></div>
+      <div class="header-links">
+        <a href="index.html" class="about-link">🏠 होमपेज</a>
+      </div>
+    </div>
+    <div class="stripe">
+      <span style="background:#E8A33D"></span>
+      <span style="background:#B33A3A"></span>
+      <span style="background:#3B6E5E"></span>
+      <span style="background:#E8A33D"></span>
+      <span style="background:#3B6E5E"></span>
+    </div>
+  </header>
+
+  <div id="authLoading" class="storefront-empty"><p>लोड हो रहा है...</p></div>
+
+  <div id="chatContent" style="display:none;">
+    <div class="chat-messages" id="chatMessages"></div>
+    <form id="chatForm" class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="मैसेज लिखें..." required autocomplete="off">
+      <button type="submit" class="chat-send-btn">➤</button>
+    </form>
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="chat.js"></script>
+</body>
+</html>
