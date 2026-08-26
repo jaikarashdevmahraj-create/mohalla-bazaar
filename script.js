@@ -291,21 +291,16 @@ function renderProducts() {
 }
 
 async function fetchSellerRating(sellerId) {
-  const cacheKey = "rating_" + sellerId;
-  const cached = readCache(cacheKey);
-  if (cached) return cached;
-
   try {
     const q = query(collection(db, "reviews"), where("sellerId", "==", sellerId));
     const snap = await getDocs(q);
-    const reviews = snap.docs.map((d) => d.data());
-    const result = reviews.length > 0
-      ? { avg: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1), count: reviews.length }
-      : { avg: null, count: 0 };
-    writeCache(cacheKey, result);
-    return result;
+    if (snap.empty) return { avg: 0, count: 0 };
+    let total = 0;
+    snap.docs.forEach((d) => { total += d.data().rating || 0; });
+    return { avg: (total / snap.docs.length).toFixed(1), count: snap.docs.length };
   } catch (e) {
-    return { avg: null, count: 0 };
+    console.error(e);
+    return { avg: 0, count: 0 };
   }
 }
 
@@ -490,7 +485,11 @@ async function handleOrderSubmit(e) {
   btn.textContent = "भेजा जा रहा है...";
 
   const qty = Number(document.getElementById("orderQty").value);
+  const name = document.getElementById("orderName").value;
+  const phone = document.getElementById("orderPhone").value;
+  const address = document.getElementById("orderAddress").value;
+  const note = document.getElementById("orderNote").value;
+
   const order = {
     productId: orderTargetItem.id, productName: orderTargetItem.title, productImg: orderTargetItem.img || null,
-    price: orderTargetItem.price, unit: orderTargetItem.unit || "", quantity: qty, totalAmount: orderTargetItem.price * qty,
-    seller
+    price: orderTargetItem.price, unit: orderTarge
