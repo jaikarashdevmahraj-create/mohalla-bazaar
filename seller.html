@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>दुकानें — मोहल्ला बाज़ार</title>
+  <title>विक्रेता डैशबोर्ड — मोहल्ला बाज़ार</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,6 +13,7 @@
       <div class="logo">🏪 <span data-i18n="appName">मोहल्ला बाज़ार</span></div>
       <div class="header-links">
         <button type="button" id="langToggleBtn" class="lang-btn">EN</button>
+        <a href="seller-profile.html" class="seller-link" data-i18n="myShopLink">🏬 मेरी दुकान</a>
         <a href="index.html" class="about-link" data-i18n="homeLink">🏠 होमपेज</a>
       </div>
     </div>
@@ -26,19 +27,103 @@
   </header>
 
   <div class="seller-page">
-    <h1 data-i18n="sellersDirectoryTitle">🏬 दुकानें</h1>
 
-    <div class="order-tabs" id="sellerTabs">
-      <button type="button" class="order-tab active" data-tab="famous" data-i18n="tabFamous">⭐ मशहूर</button>
-      <button type="button" class="order-tab" data-tab="nearby" data-i18n="tabNearby">📍 आस-पास</button>
-      <button type="button" class="order-tab" data-tab="followed" data-i18n="tabFollowed">❤️ फॉलो की गईं</button>
+    <div id="authLoading" class="storefront-empty"><p data-i18n="loading">लोड हो रहा है...</p></div>
+
+    <div id="pageContent" style="display:none;">
+
+      <h1 id="pageTitle" data-i18n="sellerDashboard">विक्रेता डैशबोर्ड</h1>
+      <p class="seller-note">आपका अकाउंट: <b id="userEmailLabel"></b> · <a href="#" id="logoutLink" data-i18n="logoutLabel">लॉगआउट</a></p>
+
+      <div id="premiumCard"></div>
+
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="section-box" id="advancedSection"></div>
+
+      <div class="section-box">
+        <h3 data-i18n="catBarsTitle">श्रेणी के हिसाब से सामान</h3>
+        <div id="catBars"></div>
+      </div>
+
+      <div class="section-box">
+        <h3>📑 एक साथ कई सामान जोड़ें (CSV)</h3>
+        <p class="premium-hint">CSV फ़ाइल में हर लाइन इस क्रम में लिखें: <b>नाम,कीमत,यूनिट,स्टॉक,श्रेणी</b><br>श्रेणी कोड: sabzi, khana, kapde, ghar, electronics, handmade, beauty, kheti, pashupalan, books, toys, tools, vehicle</p>
+        <div class="upload-row">
+          <input type="file" accept=".csv" id="csvFile" class="file-input">
+          <label for="csvFile" class="upload-btn">📄 CSV फ़ाइल चुनें</label>
+        </div>
+        <p id="csvStatus" class="premium-hint"></p>
+      </div>
+
+      <div class="section-box">
+        <h3 id="formTitle" data-i18n="addNewProduct">नया सामान जोड़ें</h3>
+        <p class="limit-note" id="limitNote"></p>
+        <form id="sellerForm">
+          <label data-i18n="productName">सामान का नाम</label>
+          <input type="text" id="pName" required placeholder="जैसे: देसी टमाटर">
+
+          <label data-i18n="productPrice">कीमत (₹ प्रति यूनिट)</label>
+          <input type="number" id="pPrice" required placeholder="जैसे: 40">
+
+          <label data-i18n="productUnit">यूनिट (किस हिसाब से बेच रहे हैं)</label>
+          <select id="pUnit">
+            <option value="पीस">पीस (नग)</option>
+            <option value="किलो">किलो (kg)</option>
+            <option value="ग्राम">ग्राम (g)</option>
+            <option value="लीटर">लीटर (L)</option>
+            <option value="दर्जन">दर्जन</option>
+            <option value="पैकेट">पैकेट</option>
+            <option value="बॉक्स">बॉक्स</option>
+          </select>
+
+          <label data-i18n="productStock">स्टॉक में कितनी मात्रा है</label>
+          <input type="number" id="pStock" required placeholder="जैसे: 25">
+
+          <label data-i18n="productCategory">श्रेणी</label>
+          <select id="pCat">
+            <option value="sabzi">🥕 सब्ज़ी-राशन</option>
+            <option value="khana">🍲 खाना/टिफिन</option>
+            <option value="kapde">👕 कपड़े</option>
+            <option value="ghar">🛋️ घरेलू सामान</option>
+            <option value="electronics">🔌 इलेक्ट्रॉनिक्स</option>
+            <option value="handmade">🧶 हस्तशिल्प</option>
+            <option value="beauty">💄 सौंदर्य/देखभाल</option>
+            <option value="kheti">🚜 खेती/कृषि</option>
+            <option value="pashupalan">🐄 पशुपालन</option>
+            <option value="books">📚 किताबें/स्टेशनरी</option>
+            <option value="toys">🧸 खिलौने</option>
+            <option value="tools">🔧 औज़ार/हार्डवेयर</option>
+            <option value="vehicle">🚗 गाड़ी/स्पेयर पार्ट्स</option>
+          </select>
+
+          <label data-i18n="productPhotos">सामान की फोटो (ज़्यादा से ज़्यादा 3)</label>
+          <div class="upload-row">
+            <input type="file" accept="image/*" id="pImgFile" class="file-input" multiple>
+            <label for="pImgFile" class="upload-btn" data-i18n="chooseFromGallery">🖼️ गैलरी से फोटो चुनें</label>
+          </div>
+          <div class="multi-img-preview" id="multiImgPreview"></div>
+
+          <button type="submit" class="btn-primary" id="submitBtn" data-i18n="addProductBtn">सामान जोड़ें</button>
+          <button type="button" class="btn-secondary" id="cancelEdit" style="display:none;" data-i18n="cancelEditBtn">एडिट रद्द करें</button>
+        </form>
+      </div>
+
+      <div class="section-box">
+        <h3><span data-i18n="myProductsTitle">मेरा सामान</span> (<span id="countLabel">0</span>)</h3>
+        <div id="myProducts"></div>
+      </div>
+
+      <a href="seller-orders.html" class="edit-toggle-btn notify-link" style="display:block; text-align:center; text-decoration:none; margin-top:16px;">
+        <span data-i18n="viewAllOrders">📦 मेरे सारे ऑर्डर देखें</span> <span class="notify-badge" id="pendingBadge" style="display:none;">0</span>
+      </a>
+
     </div>
 
-    <div id="sellerListBox"></div>
   </div>
 
   <script src="translations.js"></script>
   <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="sellers.js"></script>
+  <script type="module" src="seller.js"></script>
 </body>
 </html>
