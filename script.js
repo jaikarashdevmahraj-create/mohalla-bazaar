@@ -217,6 +217,42 @@ async function loadNextPage() {
   listings = [...listings.filter((l) => !l.isDemo), ...newItems, ...demoListings];
 }
 
+async function loadFamousSellers() {
+  try {
+    const q = query(collection(db, "sellers"), where("isPremium", "==", true), limit(10));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+function renderFamousSellers(sellersList) {
+  const row = document.getElementById("famousSellersRow");
+  if (!sellersList.length) {
+    row.innerHTML = `<p class="empty-note">${window.i18n.t("famousSellersEmpty")}</p>`;
+    return;
+  }
+  row.innerHTML = "";
+  sellersList.forEach((s) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "seller-mini-card";
+    const logo = s.logo || "https://placehold.co/120x120/E8A33D/1B2A4A?text=🏪";
+    const area = [s.village, s.district].filter(Boolean).join(", ");
+    btn.innerHTML = `
+      <img src="${logo}" alt="${s.shopName}">
+      <div class="seller-mini-name">${s.shopName || "दुकान"}</div>
+      <div class="seller-mini-area">${area || "आपके आसपास"}</div>
+    `;
+    btn.addEventListener("click", () => {
+      window.location.href = `shop.html?sellerId=${s.id}`;
+    });
+    row.appendChild(btn);
+  });
+}
+
 function renderCategories() {
   const wrap = document.getElementById("categories");
   wrap.innerHTML = "";
@@ -291,16 +327,21 @@ function renderProducts() {
 }
 
 async function fetchSellerRating(sellerId) {
+  const cacheKey = "rating_" + sellerId;
+  const cached = readCache(cacheKey);
+  if (cached) return cached;
+
   try {
     const q = query(collection(db, "reviews"), where("sellerId", "==", sellerId));
     const snap = await getDocs(q);
-    if (snap.empty) return { avg: 0, count: 0 };
-    let total = 0;
-    snap.docs.forEach((d) => { total += d.data().rating || 0; });
-    return { avg: (total / snap.docs.length).toFixed(1), count: snap.docs.length };
+    const reviews = snap.docs.map((d) => d.data());
+    const result = reviews.length > 0
+      ? { avg: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1), count: reviews.length }
+      : { avg: null, count: 0 };
+    writeCache(cacheKey, result);
+    return result;
   } catch (e) {
-    console.error(e);
-    return { avg: 0, count: 0 };
+    return { avg: null, count: 0 };
   }
 }
 
@@ -456,40 +497,4 @@ function showPaymentPopup(item, orderId, amount) {
   document.getElementById("paymentOverlay").classList.add("show");
 }
 function closePaymentPopup() {
-  document.getElementById("paymentOverlay").classList.remove("show");
-}
-
-function startOrder(item) {
-  if (!currentUser) {
-    alert("ऑर्डर करने के लिए पहले लॉगिन करना ज़रूरी है।");
-    window.location.href = "login.html?next=index.html";
-    return;
-  }
-  orderTargetItem = item;
-  closeDetail();
-  document.getElementById("orderProductName").textContent = `${item.title} — ₹${item.price} प्रति ${item.unit || "यूनिट"}`;
-  document.getElementById("orderQty").value = 1;
-  document.getElementById("orderOverlay").classList.add("show");
-}
-
-function closeOrderForm() {
-  document.getElementById("orderOverlay").classList.remove("show");
-  orderTargetItem = null;
-}
-
-async function handleOrderSubmit(e) {
-  e.preventDefault();
-  if (!orderTargetItem || !currentUser) return;
-  const btn = document.getElementById("orderSubmitBtn");
-  btn.disabled = true;
-  btn.textContent = "भेजा जा रहा है...";
-
-  const qty = Number(document.getElementById("orderQty").value);
-  const name = document.getElementById("orderName").value;
-  const phone = document.getElementById("orderPhone").value;
-  const address = document.getElementById("orderAddress").value;
-  const note = document.getElementById("orderNote").value;
-
-  const order = {
-    productId: orderTargetItem.id, productName: orderTargetItem.title, productImg: orderTargetItem.img || null,
-    price: orderTargetItem.price, unit: orderTarge
+  document.getElement
