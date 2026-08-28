@@ -497,4 +497,188 @@ function showPaymentPopup(item, orderId, amount) {
   document.getElementById("paymentOverlay").classList.add("show");
 }
 function closePaymentPopup() {
-  document.getElement
+  document.getElementById("paymentOverlay").classList.remove("show");
+}
+
+function startOrder(item) {
+  if (!currentUser) {
+    alert("ऑर्डर करने के लिए पहले लॉगिन करना ज़रूरी है।");
+    window.location.href = "login.html?next=index.html";
+    return;
+  }
+  orderTargetItem = item;
+  closeDetail();
+  document.getElementById("orderProductName").textContent = `${item.title} — ₹${item.price} प्रति ${item.unit || "यूनिट"}`;
+  document.getElementById("orderQty").value = 1;
+  document.getElementById("orderOverlay").classList.add("show");
+}
+
+function closeOrderForm() {
+  document.getElementById("orderOverlay").classList.remove("show");
+  orderTargetItem = null;
+}
+
+async function handleOrderSubmit(e) {
+  e.preventDefault();
+  if (!orderTargetItem || !currentUser) return;
+  const btn = document.getElementById("orderSubmitBtn");
+  btn.disabled = true;
+  btn.textContent = "भेजा जा रहा है...";
+
+  const qty = Number(document.getElementById("orderQty").value);
+  const name = document.getElementById("orderName").value;
+  const phone = document.getElementById("orderPhone").value;
+  const address = document.getElementById("orderAddress").value;
+  const note = document.getElementById("orderNote").value;
+
+  const order = {
+    productId: orderTargetItem.id, productName: orderTargetItem.title, productImg: orderTargetItem.img || null,
+    price: orderTargetItem.price, unit: orderTargetItem.unit || "", quantity: qty, totalAmount: orderTargetItem.price * qty,
+    sellerId: orderTargetItem.sellerId,
+    sellerName: orderTargetItem.sellerName,
+    buyerId: currentUser.uid,
+    buyerName: name,
+    buyerPhone: phone,
+    deliveryAddress: address,
+    note: note,
+    status: "pending",
+    createdAt: Date.now(),
+  };
+
+  try {
+    const docRef = await addDoc(collection(db, "orders"), order);
+    closeOrderForm();
+    showPaymentPopup(orderTargetItem, docRef.id, order.totalAmount);
+  } catch (err) {
+    console.error(err);
+    alert("ऑर्डर भेजने में दिक्कत आई। दोबारा कोशिश करें।");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "ऑर्डर भेजें";
+  }
+}
+
+// ---------- Static UI wiring ----------
+
+document.getElementById("orderForm").addEventListener("submit", handleOrderSubmit);
+document.getElementById("cancelOrder").addEventListener("click", closeOrderForm);
+document.getElementById("closePaymentPopup").addEventListener("click", closePaymentPopup);
+
+document.getElementById("zoomCloseBtn").addEventListener("click", () => {
+  document.getElementById("zoomOverlay").classList.remove("show");
+});
+document.getElementById("zoomOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "zoomOverlay") e.currentTarget.classList.remove("show");
+});
+
+document.getElementById("menuBtn").addEventListener("click", () => {
+  document.getElementById("sideMenuOverlay").classList.add("show");
+});
+document.getElementById("closeMenuBtn").addEventListener("click", () => {
+  document.getElementById("sideMenuOverlay").classList.remove("show");
+});
+document.getElementById("sideMenuOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "sideMenuOverlay") e.currentTarget.classList.remove("show");
+});
+
+function goToProtectedPage(page) {
+  if (!currentUser) {
+    window.location.href = `login.html?next=${encodeURIComponent(page)}`;
+  } else {
+    window.location.href = page;
+  }
+}
+document.getElementById("wishlistMenuLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  goToProtectedPage("wishlist.html");
+});
+document.getElementById("ordersMenuLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  goToProtectedPage("my-orders.html");
+});
+document.getElementById("accountMenuLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  goToProtectedPage("my-orders.html");
+});
+
+document.getElementById("authLink").addEventListener("click", async (e) => {
+  e.preventDefault();
+  if (currentUser) {
+    await signOut(auth);
+    window.location.reload();
+  } else {
+    window.location.href = "login.html?next=index.html";
+  }
+});
+
+document.getElementById("langToggleBtn").addEventListener("click", () => {
+  const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
+  window.i18n.setLang(newLang);
+  window.i18n.applyTranslations();
+  renderWelcomeBanner();
+  renderProducts();
+});
+
+let searchDebounceTimer = null;
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    searchText = e.target.value;
+    renderProducts();
+  }, 250);
+});
+
+document.getElementById("sortSelect").addEventListener("change", (e) => {
+  sortMode = e.target.value;
+  renderProducts();
+});
+
+document.getElementById("loadMoreBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("loadMoreBtn");
+  btn.disabled = true;
+  btn.textContent = "लोड हो रहा है...";
+  try {
+    await loadNextPage();
+    renderProducts();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "और सामान दिखाएँ";
+  }
+});
+
+// ---------- Init ----------
+
+window.i18n.applyTranslations();
+renderWelcomeBanner();
+renderSkeleton();
+renderCategories();
+
+loadFamousSellers().then(renderFamousSellers);
+
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  const authLink = document.getElementById("authLink");
+  authLink.textContent = user ? "लॉगआउट" : window.i18n.t("login");
+
+  if (user) {
+    try {
+      myWishlistIds = await fetchWishlist();
+    } catch (err) {
+      console.error(err);
+    }
+  } else {
+    myWishlistIds = new Set();
+  }
+
+  try {
+    await getMyLocation();
+    await loadFirstPage();
+  } catch (err) {
+    console.error(err);
+    listings = [...demoListings];
+  }
+
+  renderProducts();
+});
