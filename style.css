@@ -1193,4 +1193,302 @@ body {
   align-items: flex-end;
   gap: 10px;
   padding: 0 14px;
-  
+  margin-top: -40px;
+  position: relative;
+}
+
+.storefront-logo {
+  width: 74px;
+  height: 74px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid white;
+  background: #EDE4D3;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.2);
+  flex-shrink: 0;
+}
+
+.storefront-info {
+  padding-bottom: 6px;
+  color: white;
+  min-width: 0;
+}
+
+.storefront-name {
+  font-size: 17px;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
+.storefront-owner {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 2px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.storefront-area {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 1px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.shop-id-badge {
+  display: inline-block;
+  background: #F5EFDF;
+  color: #1B2A4A;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin: 12px 14px 0;
+}
+
+.storefront-desc {
+  font-size: 13px;
+  color: rgba(26,26,26,0.75);
+  padding: 0 14px;
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.storefront-address-box {
+  background: #F5EFDF;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 12px 14px 0;
+  font-size: 12px;
+  color: rgba(26,26,26,0.7);
+}
+
+.storefront-address-box span {
+  font-weight: 700;
+  color: #1B2A4A;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.storefront-stats {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  padding: 14px;
+  margin-top: 10px;
+  border-top: 1px solid rgba(27,42,74,0.08);
+}
+
+.storefront-stats div b {
+  display: block;
+  font-size: 15px;
+  color: #1B2A4A;
+}
+
+.storefront-stats div span {
+  display: block;
+  font-size: 10px;
+  color: rgba(26,26,26,0.5);
+  margin-top: 2px;
+}
+
+.storefront-contact {
+  padding: 0 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1B2A4A;
+}
+
+/* ===== टैब बार (order-tabs) — admin/orders/sellers सब जगह इस्तेमाल होता है ===== */
+.order-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 14px;
+  scroll-behavior: smooth;
+}
+
+.order-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.order-tab {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(27,42,74,0.15);
+  background: white;
+  color: #1B2A4A;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.order-tab:active {
+  transform: scale(0.96);
+}
+
+.order-tab.active {
+  background: #1B2A4A;
+  color: white;
+  border-color: #1B2A4A;
+}
+
+/* ===== मशहूर दुकानें (होमपेज पर) ===== */
+.see-all-shops-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 0;
+}
+
+.see-all-shops-row h2 {
+  font-size: 15px;
+  color: #1B2A4A;
+  margin: 0;
+}
+
+.see-all-shops-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #A8331F;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.famous-sellers-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 16px 18px;
+  scroll-behavior: smooth;
+}
+
+.famous-sellers-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.seller-mini-card {
+  flex: 0 0 auto;
+  width: 84px;
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+}
+
+.seller-mini-card img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #EDE4D3;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.15);
+}
+
+.seller-mini-card .seller-mini-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1B2A4A;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seller-mini-card .seller-mini-area {
+  font-size: 9px;
+  color: rgba(26,26,26,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== दुकानें डायरेक्टरी (sellers.html) ===== */
+.seller-list-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(27,42,74,0.07);
+  cursor: pointer;
+}
+
+.seller-list-card img {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #EDE4D3;
+  flex-shrink: 0;
+}
+
+.seller-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.seller-list-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1B2A4A;
+}
+
+.seller-list-area {
+  font-size: 11px;
+  color: rgba(26,26,26,0.5);
+  margin-top: 2px;
+}
+
+.follow-btn {
+  flex-shrink: 0;
+  background: white;
+  border: 1.5px solid #1B2A4A;
+  color: #1B2A4A;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-family: inherit;
+}
+
+.follow-btn.following {
+  background: #1B2A4A;
+  color: white;
+}
+
+/* ===== दुकान पेज (shop.html) ===== */
+.shop-header-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 14px 0;
+}
+
+.shop-header-actions .follow-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.shop-header-actions .shop-chat-btn {
+  flex: 1;
+  background: #1B2A4A;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  font-family: inherit;
+
+}
