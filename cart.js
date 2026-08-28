@@ -6,6 +6,8 @@ const { onAuthStateChanged } = window.authTools;
 let myUid = null;
 let cartItems = [];
 let appliedDiscount = 0;
+let appliedCouponCode = "";
+let couponError = "";
 
 async function fetchCart() {
   const snap = await getDoc(doc(db, "carts", myUid));
@@ -49,6 +51,28 @@ function renderCart() {
   const total = Math.max(0, cartItems.reduce((s, i) => s + i.price * i.qty, 0) - appliedDiscount);
   document.getElementById("cartTotalAmount").textContent = `₹${total}`;
   summary.style.display = "block";
+  renderCouponMsg();
+}
+
+function renderCouponMsg() {
+  const msg = document.getElementById("couponMsg");
+  if (appliedDiscount > 0) {
+    msg.innerHTML = `✅ कूपन <b>${appliedCouponCode}</b> से ₹${appliedDiscount} की छूट लागू है। <a href="#" id="removeCouponLink" style="color:#C0392B; text-decoration:underline;">हटाएँ</a>`;
+    msg.style.color = "#2E7D4F";
+    document.getElementById("removeCouponLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      appliedDiscount = 0;
+      appliedCouponCode = "";
+      couponError = "";
+      document.getElementById("couponInput").value = "";
+      renderCart();
+    });
+  } else if (couponError) {
+    msg.textContent = couponError;
+    msg.style.color = "#C0392B";
+  } else {
+    msg.textContent = "";
+  }
 }
 
 window.changeQty = async function (idx, delta) {
@@ -65,20 +89,31 @@ window.removeItem = async function (idx) {
 
 async function applyCoupon() {
   const code = document.getElementById("couponInput").value.trim().toUpperCase();
-  const msg = document.getElementById("couponMsg");
   if (!code) return;
+
+  const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
 
   const q = query(collection(db, "coupons"), where("code", "==", code));
   const snap = await getDocs(q);
   if (snap.empty) {
-    msg.textContent = "❌ यह कूपन कोड मान्य नहीं है।";
-    msg.style.color = "#C0392B";
+    couponError = "❌ यह कूपन कोड मान्य नहीं है।";
     appliedDiscount = 0;
+    appliedCouponCode = "";
   } else {
     const coupon = snap.docs[0].data();
-    appliedDiscount = coupon.amount;
-    msg.textContent = `✅ ₹${coupon.amount} की छूट लागू हो गई!`;
-    msg.style.color = "#2E7D4F";
+    if (coupon.expiryDate && Date.now() > coupon.expiryDate) {
+      couponError = "❌ इस कूपन की समय-सीमा समाप्त हो चुकी है।";
+      appliedDiscount = 0;
+      appliedCouponCode = "";
+    } else if (coupon.minCartValue && subtotal < coupon.minCartValue) {
+      couponError = `❌ इस कूपन के लिए कम से कम ₹${coupon.minCartValue} का सामान कार्ट में होना ज़रूरी है।`;
+      appliedDiscount = 0;
+      appliedCouponCode = "";
+    } else {
+      appliedDiscount = Math.min(coupon.amount, subtotal);
+      appliedCouponCode = code;
+      couponError = "";
+    }
   }
   renderCart();
 }
@@ -118,8 +153,15 @@ async function handleCheckoutSubmit(e) {
   const address = document.getElementById("checkoutAddress").value;
   const note = document.getElementById("checkoutNote").value;
 
+  const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+
   try {
     for (const item of cartItems) {
+      const itemTotal = item.price * item.qty;
+      const itemDiscountShare = appliedDiscount > 0
+        ? Math.round((itemTotal / subtotal) * appliedDiscount)
+        : 0;
+
       await addDoc(collection(db, "orders"), {
         productId: item.productId,
         productName: item.title,
@@ -127,7 +169,10 @@ async function handleCheckoutSubmit(e) {
         price: item.price,
         unit: item.unit || "",
         quantity: item.qty,
-        totalAmount: item.price * item.qty,
+        totalAmount: Math.max(0, itemTotal - itemDiscountShare),
+        originalAmount: itemTotal,
+        couponCode: appliedCouponCode || null,
+        discountAmount: itemDiscountShare,
         sellerId: item.sellerId,
         sellerName: item.sellerName,
         buyerId: myUid,
@@ -142,6 +187,8 @@ async function handleCheckoutSubmit(e) {
 
     cartItems = [];
     appliedDiscount = 0;
+    appliedCouponCode = "";
+    couponError = "";
     await saveCart();
     alert("✅ आपके सभी ऑर्डर भेज दिए गए हैं! विक्रेताओं के स्वीकार करने का इंतज़ार करें।");
     closeCheckout();
