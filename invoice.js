@@ -13,7 +13,10 @@ function renderInvoice(order, orderId) {
     ? new Date(order.createdAt).toLocaleDateString("hi-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
     : "";
 
-  const statusText = order.status === "accepted" ? "✅ स्वीकृत"
+  const statusText = order.status === "delivered" ? "🏠 डिलीवर हो गया"
+    : order.status === "out_for_delivery" ? "🚚 डिलीवरी के लिए निकला"
+    : order.status === "packed" ? "📦 पैक हो गया"
+    : order.status === "accepted" ? "✅ स्वीकृत"
     : order.status === "cancelled" ? "❌ रद्द"
     : "⏳ पेंडिंग";
 
@@ -47,8 +50,13 @@ function renderInvoice(order, orderId) {
           <td>${order.productName}</td>
           <td>${order.quantity} ${order.unit || ""}</td>
           <td>₹${order.price}</td>
-          <td>₹${order.totalAmount}</td>
+          <td>₹${order.originalAmount || order.totalAmount}</td>
         </tr>
+        ${order.discountAmount ? `
+        <tr>
+          <td colspan="3">🎟️ कूपन छूट ${order.couponCode ? `(${order.couponCode})` : ""}</td>
+          <td>-₹${order.discountAmount}</td>
+        </tr>` : ""}
       </tbody>
     </table>
 
