@@ -11,6 +11,9 @@ let cancelTargetId = null;
 function statusLabel(status) {
   if (status === "pending") return { text: "⏳ पेंडिंग", cls: "warn-text" };
   if (status === "accepted") return { text: "✅ स्वीकार किया गया", cls: "" };
+  if (status === "packed") return { text: "📦 पैक हो गया", cls: "" };
+  if (status === "out_for_delivery") return { text: "🚚 डिलीवरी के लिए निकला", cls: "" };
+  if (status === "delivered") return { text: "🏠 डिलीवर हो गया", cls: "" };
   if (status === "cancelled") return { text: "❌ रद्द किया गया", cls: "danger-text" };
   return { text: status, cls: "" };
 }
@@ -25,7 +28,8 @@ async function fetchOrders() {
 
 function renderStats() {
   const pending = allOrders.filter((o) => o.status === "pending").length;
-  const accepted = allOrders.filter((o) => o.status === "accepted").length;
+  const accepted = allOrders.filter((o) => o.status === "accepted" || o.status === "packed" || o.status === "out_for_delivery").length;
+  const delivered = allOrders.filter((o) => o.status === "delivered").length;
   const cancelled = allOrders.filter((o) => o.status === "cancelled").length;
 
   document.getElementById("orderStats").innerHTML = `
@@ -36,6 +40,10 @@ function renderStats() {
     <div class="stat-card">
       <div class="stat-value">${accepted}</div>
       <div class="stat-label">${window.i18n.t("acceptedOrdersStat")}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${delivered}</div>
+      <div class="stat-label">${window.i18n.t("deliveredOrdersStat")}</div>
     </div>
     <div class="stat-card danger">
       <div class="stat-value">${cancelled}</div>
@@ -71,6 +79,12 @@ function renderOrdersList() {
         <button onclick="acceptOrder('${o.id}')" class="btn-primary" style="margin-top:10px;">${window.i18n.t("acceptBtn")}</button>
         <button onclick="cancelOrder('${o.id}')" class="delete-account-btn" style="margin-top:8px;">${window.i18n.t("rejectBtn")}</button>
       </div>
+    ` : o.status === "accepted" ? `
+      <button onclick="markPacked('${o.id}')" class="btn-primary" style="margin-top:10px;">${window.i18n.t("markPackedBtn")}</button>
+    ` : o.status === "packed" ? `
+      <button onclick="markOutForDelivery('${o.id}')" class="btn-primary" style="margin-top:10px;">${window.i18n.t("markOutForDeliveryBtn")}</button>
+    ` : o.status === "out_for_delivery" ? `
+      <button onclick="markDelivered('${o.id}')" class="btn-primary" style="margin-top:10px;">${window.i18n.t("markDeliveredBtn")}</button>
     ` : "";
 
     return `
@@ -80,6 +94,7 @@ function renderOrdersList() {
           <div>
             <div class="product-row-title">${o.productName}</div>
             <div class="product-row-price">₹${o.price} x ${o.quantity} = ₹${o.totalAmount}</div>
+            ${o.discountAmount ? `<div style="font-size:11px; color:#2E7D4F;">🎟️ खरीदार को कूपन छूट: -₹${o.discountAmount}</div>` : ""}
             <div class="${st.cls}" style="font-size:12px; font-weight:600;">${st.text}</div>
           </div>
         </div>
@@ -99,6 +114,21 @@ function renderOrdersList() {
 
 window.acceptOrder = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "accepted" });
+  await refresh();
+};
+
+window.markPacked = async function (id) {
+  await updateDoc(doc(db, "orders", id), { status: "packed" });
+  await refresh();
+};
+
+window.markOutForDelivery = async function (id) {
+  await updateDoc(doc(db, "orders", id), { status: "out_for_delivery" });
+  await refresh();
+};
+
+window.markDelivered = async function (id) {
+  await updateDoc(doc(db, "orders", id), { status: "delivered" });
   await refresh();
 };
 
