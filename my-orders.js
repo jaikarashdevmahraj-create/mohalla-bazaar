@@ -14,16 +14,11 @@ let selectedRating = 0;
 function statusLabel(status) {
   if (status === "pending") return { text: "⏳ विक्रेता के जवाब का इंतज़ार", cls: "warn-text" };
   if (status === "accepted") return { text: "✅ विक्रेता ने स्वीकार किया", cls: "" };
+  if (status === "packed") return { text: "📦 सामान पैक हो गया", cls: "" };
+  if (status === "out_for_delivery") return { text: "🚚 डिलीवरी के लिए निकल गया", cls: "" };
+  if (status === "delivered") return { text: "🏠 डिलीवर हो गया", cls: "" };
   if (status === "cancelled") return { text: "❌ विक्रेता ने रद्द किया", cls: "danger-text" };
   return { text: status, cls: "" };
-}
-
-async function fetchOrders(uid) {
-  const q = query(collection(db, "orders"), where("buyerId", "==", uid));
-  const snap = await getDocs(q);
-  const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return orders;
 }
 
 async function fetchMyReviews(uid) {
@@ -37,11 +32,14 @@ function renderTracker(status) {
     return `<div class="tracker-cancelled">❌ यह ऑर्डर रद्द कर दिया गया है</div>`;
   }
   const steps = [
-    { key: "placed", label: "ऑर्डर हुआ", emoji: "🛒" },
+    { key: "pending", label: "ऑर्डर हुआ", emoji: "🛒" },
     { key: "accepted", label: "स्वीकार हुआ", emoji: "✅" },
-    { key: "ready", label: "तैयार/भेजा", emoji: "📦" },
+    { key: "packed", label: "पैक हुआ", emoji: "📦" },
+    { key: "out_for_delivery", label: "डिलीवरी पर", emoji: "🚚" },
+    { key: "delivered", label: "डिलीवर हुआ", emoji: "🏠" },
   ];
-  const activeIdx = status === "accepted" ? 2 : 0;
+  const order = ["pending", "accepted", "packed", "out_for_delivery", "delivered"];
+  const activeIdx = Math.max(0, order.indexOf(status));
 
   return `
     <div class="order-tracker">
@@ -73,7 +71,7 @@ function renderOrdersList() {
       : "";
     const trackerHtml = renderTracker(o.status);
     const alreadyReviewed = reviewedOrderIds.has(o.id);
-    const reviewBtnHtml = o.status === "accepted"
+    const reviewBtnHtml = o.status === "delivered"
       ? (alreadyReviewed
           ? `<p class="premium-hint" style="margin-top:8px;">${window.i18n.t("alreadyRated")}</p>`
           : `<button onclick="openReview('${o.id}')" class="edit-toggle-btn" style="margin-top:8px;">${window.i18n.t("giveRating")}</button>`)
@@ -86,6 +84,7 @@ function renderOrdersList() {
           <div>
             <div class="product-row-title">${o.productName}</div>
             <div class="product-row-price">₹${o.price} x ${o.quantity} = ₹${o.totalAmount}</div>
+            ${o.discountAmount ? `<div style="font-size:11px; color:#2E7D4F;">🎟️ कूपन छूट: -₹${o.discountAmount}</div>` : ""}
             <div class="${st.cls}" style="font-size:12px; font-weight:600;">${st.text}</div>
           </div>
         </div>
@@ -286,8 +285,13 @@ onAuthStateChanged(auth, async (user) => {
     myName = user.email;
   }
 
-  allOrders = await fetchOrders(user.uid);
   reviewedOrderIds = await fetchMyReviews(user.uid);
-  renderOrdersList();
   await loadSavedAddresses();
+
+  const ordersQuery = query(collection(db, "orders"), where("buyerId", "==", user.uid));
+  onSnapshot(ordersQuery, (snap) => {
+    allOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    allOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    renderOrdersList();
+  });
 });
