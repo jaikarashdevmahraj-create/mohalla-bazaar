@@ -71,6 +71,10 @@ function renderContent() {
           <input type="text" id="couponCode" required style="text-transform:uppercase;">
           <label>छूट (₹ में)</label>
           <input type="number" id="couponAmount" required>
+          <label>न्यूनतम कार्ट राशि (वैकल्पिक, ₹)</label>
+          <input type="number" id="couponMinCart" placeholder="जैसे: 200 (खाली छोड़ सकते हैं)">
+          <label>समय-सीमा (वैकल्पिक)</label>
+          <input type="date" id="couponExpiry">
           <button type="submit" class="btn-primary" style="margin-top:10px;">कूपन बनाएँ</button>
         </form>
       </div>
@@ -78,6 +82,8 @@ function renderContent() {
       <div class="section-box order-card">
         <div class="product-row-title">🎟️ ${c.code}</div>
         <div style="font-size:12px;">छूट: ₹${c.amount}</div>
+        ${c.minCartValue ? `<div style="font-size:12px; color:rgba(26,26,26,0.5);">न्यूनतम कार्ट: ₹${c.minCartValue}</div>` : ""}
+        ${c.expiryDate ? `<div style="font-size:12px; color:rgba(26,26,26,0.5);">समय-सीमा: ${new Date(c.expiryDate).toLocaleDateString("hi-IN")}</div>` : ""}
         <button onclick="deleteCoupon('${c.id}')" class="delete-account-btn" style="margin-top:8px;">🗑️ डिलीट करें</button>
       </div>
     `).join("");
@@ -86,7 +92,10 @@ function renderContent() {
       e.preventDefault();
       const code = document.getElementById("couponCode").value.toUpperCase();
       const amount = Number(document.getElementById("couponAmount").value);
-      await addDoc(collection(db, "coupons"), { code, amount });
+      const minCartValue = Number(document.getElementById("couponMinCart").value) || 0;
+      const expiryStr = document.getElementById("couponExpiry").value;
+      const expiryDate = expiryStr ? new Date(expiryStr + "T23:59:59").getTime() : null;
+      await addDoc(collection(db, "coupons"), { code, amount, minCartValue, expiryDate });
       await loadAllData();
       renderContent();
     });
@@ -149,3 +158,4 @@ onAuthStateChanged(auth, async (user) => {
   renderStats();
   renderContent();
 });
+
