@@ -12,6 +12,24 @@ let isFollowing = false;
 let shopProducts = [];
 let searchText = "";
 let orderTargetItem = null;
+const CACHE_TTL_MS = 2 * 60 * 1000;
+
+function readCache(key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.time > CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) {
+    return null;
+  }
+}
+function writeCache(key, data) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ time: Date.now(), data }));
+  } catch (e) {}
+}
 
 function getMySellerId() {
   return sellerId;
@@ -361,19 +379,30 @@ async function init() {
   }
 
   try {
-    const sSnap = await getDoc(doc(db, "sellers", sellerId));
-    if (!sSnap.exists()) {
-      document.getElementById("loadingBox").style.display = "none";
-      document.getElementById("notFoundBox").style.display = "block";
-      return;
+    const cacheKey = `shop_${sellerId}`;
+    const cached = readCache(cacheKey);
+
+    let ratingInfo;
+    if (cached) {
+      sellerData = cached.seller;
+      shopProducts = cached.products;
+      ratingInfo = cached.rating;
+    } else {
+      const sSnap = await getDoc(doc(db, "sellers", sellerId));
+      if (!sSnap.exists()) {
+        document.getElementById("loadingBox").style.display = "none";
+        document.getElementById("notFoundBox").style.display = "block";
+        return;
+      }
+      sellerData = sSnap.data();
+      await loadShopProducts();
+      ratingInfo = await fetchRatingInfo();
+      writeCache(cacheKey, { seller: sellerData, products: shopProducts, rating: ratingInfo });
     }
-    sellerData = sSnap.data();
 
     const chatLink = document.getElementById("shopChatLink");
     chatLink.href = `chat.html?sellerId=${sellerId}&sellerName=${encodeURIComponent(sellerData.shopName || "")}`;
 
-    await loadShopProducts();
-    const ratingInfo = await fetchRatingInfo();
     renderStorefront(sellerData, ratingInfo, shopProducts.length);
     renderFollowBtn();
     renderProducts();
@@ -402,4 +431,3 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 init();
-
