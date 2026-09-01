@@ -1,6 +1,6 @@
 const db = window.firebaseDB;
 const auth = window.firebaseAuth;
-const { collection, query, where, getDocs, doc, updateDoc, orderBy, onSnapshot } = window.firebaseTools;
+const { collection, query, where, doc, updateDoc, onSnapshot } = window.firebaseTools;
 const { onAuthStateChanged } = window.authTools;
 
 let myUid = null;
@@ -16,14 +16,6 @@ function statusLabel(status) {
   if (status === "delivered") return { text: "🏠 डिलीवर हो गया", cls: "" };
   if (status === "cancelled") return { text: "❌ रद्द किया गया", cls: "danger-text" };
   return { text: status, cls: "" };
-}
-
-async function fetchOrders() {
-  const q = query(collection(db, "orders"), where("sellerId", "==", myUid));
-  const snap = await getDocs(q);
-  const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return orders;
 }
 
 function renderStats() {
@@ -114,22 +106,18 @@ function renderOrdersList() {
 
 window.acceptOrder = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "accepted" });
-  await refresh();
 };
 
 window.markPacked = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "packed" });
-  await refresh();
 };
 
 window.markOutForDelivery = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "out_for_delivery" });
-  await refresh();
 };
 
 window.markDelivered = async function (id) {
   await updateDoc(doc(db, "orders", id), { status: "delivered" });
-  await refresh();
 };
 
 window.cancelOrder = function (id) {
@@ -157,19 +145,11 @@ async function handleCancelReasonSubmit(e) {
 
   closeCancelReasonForm();
   document.getElementById("cancelReasonForm").reset();
-  await refresh();
 }
 
 window.confirmPaymentReceived = async function (id) {
   await updateDoc(doc(db, "orders", id), { paymentStatus: "confirmed" });
-  await refresh();
 };
-
-async function refresh() {
-  allOrders = await fetchOrders();
-  renderStats();
-  renderOrdersList();
-}
 
 document.getElementById("cancelReasonCancel").addEventListener("click", closeCancelReasonForm);
 document.getElementById("cancelReasonOverlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeCancelReasonForm(); });
@@ -188,7 +168,8 @@ document.getElementById("langToggleBtn").addEventListener("click", () => {
   const newLang = window.i18n.getLang() === "hi" ? "en" : "hi";
   window.i18n.setLang(newLang);
   window.i18n.applyTranslations();
-  refresh();
+  renderStats();
+  renderOrdersList();
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -200,10 +181,12 @@ onAuthStateChanged(auth, async (user) => {
   myUid = user.uid;
   document.getElementById("authLoading").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
-  await refresh();
 
   const q = query(collection(db, "orders"), where("sellerId", "==", myUid));
-  onSnapshot(q, () => {
-    refresh();
+  onSnapshot(q, (snap) => {
+    allOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    allOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    renderStats();
+    renderOrdersList();
   });
 });
