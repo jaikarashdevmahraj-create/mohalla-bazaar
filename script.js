@@ -218,10 +218,14 @@ async function loadNextPage() {
 }
 
 async function loadFamousSellers() {
+  const cached = readCache("famousSellers");
+  if (cached) return cached;
   try {
     const q = query(collection(db, "sellers"), where("isPremium", "==", true), limit(10));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    writeCache("famousSellers", list);
+    return list;
   } catch (err) {
     console.error(err);
     return [];
