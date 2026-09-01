@@ -9,6 +9,24 @@ let activeTab = "famous";
 let myLat = null;
 let myLng = null;
 const tabCache = {};
+const CACHE_TTL_MS = 3 * 60 * 1000;
+
+function readCache(key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.time > CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch (e) {
+    return null;
+  }
+}
+function writeCache(key, data) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ time: Date.now(), data }));
+  } catch (e) {}
+}
 
 function getMyLocation() {
   return new Promise((resolve) => {
@@ -49,15 +67,23 @@ async function fetchFollowedIds() {
 }
 
 async function fetchFamousSellers() {
+  const cached = readCache("dir_famousSellers");
+  if (cached) return cached;
   const q = query(collection(db, "sellers"), where("isPremium", "==", true), limit(30));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  writeCache("dir_famousSellers", list);
+  return list;
 }
 
 async function fetchNearbySellers() {
   await getMyLocation();
-  const snap = await getDocs(collection(db, "sellers"));
-  const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  let all = readCache("dir_allSellers");
+  if (!all) {
+    const snap = await getDocs(collection(db, "sellers"));
+    all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    writeCache("dir_allSellers", all);
+  }
   if (myLat == null) return all;
   return all
     .map((s) => ({
@@ -205,4 +231,3 @@ onAuthStateChanged(auth, async (user) => {
   followedIds = user ? await fetchFollowedIds() : new Set();
   renderCurrentTab();
 });
-        
