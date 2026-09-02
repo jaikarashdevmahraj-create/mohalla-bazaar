@@ -6,7 +6,7 @@ const { onAuthStateChanged } = window.authTools;
 // ⚠️ Yahan apne Flask backend ka URL daalna:
 // - Codespaces mein test karte waqt: forwarded port wala URL (jo "Ports" tab mein dikhega)
 // - Render par deploy hone ke baad: wahan ka live URL yahan daal dena
-const BACKEND_URL = "https://YOUR-BACKEND-URL-HERE";
+const BACKEND_URL = "https://mohalla-bazaar.onrender.com";
 
 let myUid = null;
 let cartItems = [];
