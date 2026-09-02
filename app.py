@@ -9,21 +9,16 @@ from firebase_admin import credentials, firestore, auth
 # ---------- Firebase Setup ----------
 # Codespaces/local testing ke liye: firebase_key.json file se
 # Render par deploy karte waqt: FIREBASE_KEY_JSON environment variable se
-# (isse file kahin bhi upload/commit nahi karni padti)
 if os.environ.get("FIREBASE_KEY_JSON"):
     cred = credentials.Certificate(json.loads(os.environ["FIREBASE_KEY_JSON"]))
-    else:
-        cred = credentials.Certificate("firebase_key.json")
+else:
+    cred = credentials.Certificate("firebase_key.json")
 
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-        app = Flask(__name__)
-        # ⚠️ Abhi testing ke liye sabke liye khula hai (origins="*").
-        # Render par live karte waqt ise apni GitHub Pages domain tak seedha kar dena:
-        # CORS(app, origins=["https://jaikarashdevmahraj-create.github.io"])
-        CORS(app)
-
+app = Flask(__name__)
+CORS(app)
 
         def verify_token(req):
             """Authorization header se Firebase ID token nikaal kar verify karta hai.
